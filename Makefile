@@ -97,6 +97,7 @@ verify-generate: generate
 
 .PHONY: test
 test: $(TESTLINT)
+	go mod tidy
 	GO111MODULE=on $(GO) test $(TESTCOVER) -v -race ./...
 
 .PHONY: release
