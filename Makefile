@@ -116,3 +116,7 @@ validate-go-version:
 .PHONY: local-env-%
 local-env-%:
 	make -C contrib/local-environment $*
+
+# Stratio CICD flow
+change-version:
+	@echo $(version) > VERSION
