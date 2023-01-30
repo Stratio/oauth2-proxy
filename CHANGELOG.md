@@ -1,12 +1,15 @@
 # Changelog
 
-## 7.1.2-0.1.0 (upcoming)
+## 7.4.0-0.1.0 (upcoming)
+
+## 7.1.2-0.1.1 (2023-02-01)
+
+* [EOS-10808] Clear extra cookies with same domain as session cookie
+
+## 7.1.2-0.1.0 (2022-07-21)
 
 * Use new versioning schema
 * Adapt repo to new CICD
-
-## 7.1.2 (September 10, 2021)
-
 * Bump alpine version to fix vulnerabilities
 * [EOS-5416] Make sis path configurable
 * [EOS-5112] Clear extra cookies whenever session cookie is removed
