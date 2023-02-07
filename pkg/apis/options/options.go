@@ -6,7 +6,7 @@ import (
 
 	oidc "github.com/coreos/go-oidc"
 	ipapi "github.com/oauth2-proxy/oauth2-proxy/v7/pkg/apis/ip"
-	"github.com/oauth2-proxy/oauth2-proxy/v7/providers"
+	internaloidc "github.com/oauth2-proxy/oauth2-proxy/v7/pkg/providers/oidc"
 	"github.com/spf13/pflag"
 )
 
@@ -31,25 +31,11 @@ type Options struct {
 	ClientSecret       string   `flag:"client-secret" cfg:"client_secret"`
 	ClientSecretFile   string   `flag:"client-secret-file" cfg:"client_secret_file"`
 
-	AuthenticatedEmailsFile  string   `flag:"authenticated-emails-file" cfg:"authenticated_emails_file"`
-	KeycloakGroups           []string `flag:"keycloak-group" cfg:"keycloak_groups"`
-	AzureTenant              string   `flag:"azure-tenant" cfg:"azure_tenant"`
-	BitbucketTeam            string   `flag:"bitbucket-team" cfg:"bitbucket_team"`
-	BitbucketRepository      string   `flag:"bitbucket-repository" cfg:"bitbucket_repository"`
-	EmailDomains             []string `flag:"email-domain" cfg:"email_domains"`
-	WhitelistDomains         []string `flag:"whitelist-domain" cfg:"whitelist_domains"`
-	GitHubOrg                string   `flag:"github-org" cfg:"github_org"`
-	GitHubTeam               string   `flag:"github-team" cfg:"github_team"`
-	GitHubRepo               string   `flag:"github-repo" cfg:"github_repo"`
-	GitHubToken              string   `flag:"github-token" cfg:"github_token"`
-	GitHubUsers              []string `flag:"github-user" cfg:"github_users"`
-	GitLabGroup              []string `flag:"gitlab-group" cfg:"gitlab_groups"`
-	GitlabProjects           []string `flag:"gitlab-project" cfg:"gitlab_projects"`
-	GoogleGroups             []string `flag:"google-group" cfg:"google_group"`
-	GoogleAdminEmail         string   `flag:"google-admin-email" cfg:"google_admin_email"`
-	GoogleServiceAccountJSON string   `flag:"google-service-account-json" cfg:"google_service_account_json"`
-	HtpasswdFile             string   `flag:"htpasswd-file" cfg:"htpasswd_file"`
-	HtpasswdUserGroups       []string `flag:"htpasswd-user-group" cfg:"htpasswd_user_groups"`
+	AuthenticatedEmailsFile string   `flag:"authenticated-emails-file" cfg:"authenticated_emails_file"`
+	EmailDomains            []string `flag:"email-domain" cfg:"email_domains"`
+	WhitelistDomains        []string `flag:"whitelist-domain" cfg:"whitelist_domains"`
+	HtpasswdFile            string   `flag:"htpasswd-file" cfg:"htpasswd_file"`
+	HtpasswdUserGroups      []string `flag:"htpasswd-user-group" cfg:"htpasswd_user_groups"`
 
 	Cookie    Cookie         `cfg:",squash"`
 	Session   SessionOptions `cfg:",squash"`
@@ -58,7 +44,7 @@ type Options struct {
 
 	// Not used in the legacy config, name not allowed to match an external key (upstreams)
 	// TODO(JoelSpeed): Rename when legacy config is removed
-	UpstreamServers Upstreams `cfg:",internal"`
+	UpstreamServers UpstreamConfig `cfg:",internal"`
 
 	InjectRequestHeaders  []Header `cfg:",internal"`
 	InjectResponseHeaders []Header `cfg:",internal"`
@@ -66,6 +52,9 @@ type Options struct {
 	Server        Server `cfg:",internal"`
 	MetricsServer Server `cfg:",internal"`
 
+	Providers Providers `cfg:",internal"`
+
+	APIRoutes             []string `flag:"api-route" cfg:"api_routes"`
 	SkipAuthRegex         []string `flag:"skip-auth-regex" cfg:"skip_auth_regex"`
 	SkipAuthRoutes        []string `flag:"skip-auth-route" cfg:"skip_auth_routes"`
 	SkipJwtBearerTokens   bool     `flag:"skip-jwt-bearer-tokens" cfg:"skip_jwt_bearer_tokens"`
@@ -73,32 +62,8 @@ type Options struct {
 	SkipProviderButton    bool     `flag:"skip-provider-button" cfg:"skip_provider_button"`
 	SSLInsecureSkipVerify bool     `flag:"ssl-insecure-skip-verify" cfg:"ssl_insecure_skip_verify"`
 	SkipAuthPreflight     bool     `flag:"skip-auth-preflight" cfg:"skip_auth_preflight"`
-
+	ForceJSONErrors       bool     `flag:"force-json-errors" cfg:"force_json_errors"`
 	ClearExtraCookieNames []string `flag:"clear-extra-cookie-names" cfg:"clear_extra_cookie_names"`
-
-	// These options allow for other providers besides Google, with
-	// potential overrides.
-	ProviderType                       string   `flag:"provider" cfg:"provider"`
-	ProviderName                       string   `flag:"provider-display-name" cfg:"provider_display_name"`
-	ProviderCAFiles                    []string `flag:"provider-ca-file" cfg:"provider_ca_files"`
-	OIDCIssuerURL                      string   `flag:"oidc-issuer-url" cfg:"oidc_issuer_url"`
-	InsecureOIDCAllowUnverifiedEmail   bool     `flag:"insecure-oidc-allow-unverified-email" cfg:"insecure_oidc_allow_unverified_email"`
-	InsecureOIDCSkipIssuerVerification bool     `flag:"insecure-oidc-skip-issuer-verification" cfg:"insecure_oidc_skip_issuer_verification"`
-	SkipOIDCDiscovery                  bool     `flag:"skip-oidc-discovery" cfg:"skip_oidc_discovery"`
-	OIDCJwksURL                        string   `flag:"oidc-jwks-url" cfg:"oidc_jwks_url"`
-	OIDCEmailClaim                     string   `flag:"oidc-email-claim" cfg:"oidc_email_claim"`
-	OIDCGroupsClaim                    string   `flag:"oidc-groups-claim" cfg:"oidc_groups_claim"`
-	LoginURL                           string   `flag:"login-url" cfg:"login_url"`
-	RedeemURL                          string   `flag:"redeem-url" cfg:"redeem_url"`
-	ProfileURL                         string   `flag:"profile-url" cfg:"profile_url"`
-	ProtectedResource                  string   `flag:"resource" cfg:"resource"`
-	ValidateURL                        string   `flag:"validate-url" cfg:"validate_url"`
-	Scope                              string   `flag:"scope" cfg:"scope"`
-	SignOutURL                         string   `flag:"sign-out-url" cfg:"sign_out_url"`
-	Prompt                             string   `flag:"prompt" cfg:"prompt"`
-	ApprovalPrompt                     string   `flag:"approval-prompt" cfg:"approval_prompt"` // Deprecated by OIDC 1.0
-	UserIDClaim                        string   `flag:"user-id-claim" cfg:"user_id_claim"`
-	AllowedGroups                      []string `flag:"allowed-group" cfg:"allowed_groups"`
 
 	SignatureKey    string `flag:"signature-key" cfg:"signature_key"`
 	AcrValues       string `flag:"acr-values" cfg:"acr_values"`
@@ -116,48 +81,40 @@ type Options struct {
 	redirectURL        *url.URL
 	provider           providers.Provider
 	signatureData      *SignatureData
-	oidcVerifier       *oidc.IDTokenVerifier
-	jwtBearerVerifiers []*oidc.IDTokenVerifier
+	oidcVerifier       internaloidc.IDTokenVerifier
+	jwtBearerVerifiers []internaloidc.IDTokenVerifier
 	realClientIPParser ipapi.RealClientIPParser
 }
 
 // Options for Getting internal values
-func (o *Options) GetRedirectURL() *url.URL                        { return o.redirectURL }
-func (o *Options) GetProvider() providers.Provider                 { return o.provider }
-func (o *Options) GetSignatureData() *SignatureData                { return o.signatureData }
-func (o *Options) GetOIDCVerifier() *oidc.IDTokenVerifier          { return o.oidcVerifier }
-func (o *Options) GetJWTBearerVerifiers() []*oidc.IDTokenVerifier  { return o.jwtBearerVerifiers }
+func (o *Options) GetRedirectURL() *url.URL                      { return o.redirectURL }
+func (o *Options) GetSignatureData() *SignatureData              { return o.signatureData }
+func (o *Options) GetOIDCVerifier() internaloidc.IDTokenVerifier { return o.oidcVerifier }
+func (o *Options) GetJWTBearerVerifiers() []internaloidc.IDTokenVerifier {
+	return o.jwtBearerVerifiers
+}
 func (o *Options) GetRealClientIPParser() ipapi.RealClientIPParser { return o.realClientIPParser }
 
 // Options for Setting internal values
-func (o *Options) SetRedirectURL(s *url.URL)                        { o.redirectURL = s }
-func (o *Options) SetProvider(s providers.Provider)                 { o.provider = s }
-func (o *Options) SetSignatureData(s *SignatureData)                { o.signatureData = s }
-func (o *Options) SetOIDCVerifier(s *oidc.IDTokenVerifier)          { o.oidcVerifier = s }
-func (o *Options) SetJWTBearerVerifiers(s []*oidc.IDTokenVerifier)  { o.jwtBearerVerifiers = s }
-func (o *Options) SetRealClientIPParser(s ipapi.RealClientIPParser) { o.realClientIPParser = s }
+func (o *Options) SetRedirectURL(s *url.URL)                              { o.redirectURL = s }
+func (o *Options) SetSignatureData(s *SignatureData)                      { o.signatureData = s }
+func (o *Options) SetOIDCVerifier(s internaloidc.IDTokenVerifier)         { o.oidcVerifier = s }
+func (o *Options) SetJWTBearerVerifiers(s []internaloidc.IDTokenVerifier) { o.jwtBearerVerifiers = s }
+func (o *Options) SetRealClientIPParser(s ipapi.RealClientIPParser)       { o.realClientIPParser = s }
 
 // NewOptions constructs a new Options with defaulted values
 func NewOptions() *Options {
 	return &Options{
-		ProxyPrefix:                      "/oauth2",
-		ProviderType:                     "google",
-		PingPath:                         "/ping",
-		RealClientIPHeader:               "X-Real-IP",
-		ForceHTTPS:                       false,
-		Cookie:                           cookieDefaults(),
-		Session:                          sessionOptionsDefaults(),
-		Templates:                        templatesDefaults(),
-		AzureTenant:                      "common",
-		SkipAuthPreflight:                false,
-		Prompt:                           "", // Change to "login" when ApprovalPrompt officially deprecated
-		ApprovalPrompt:                   "force",
-		InsecureOIDCAllowUnverifiedEmail: false,
-		SkipOIDCDiscovery:                false,
-		Logging:                          loggingDefaults(),
-		UserIDClaim:                      providers.OIDCEmailClaim, // Deprecated: Use OIDCEmailClaim
-		OIDCEmailClaim:                   providers.OIDCEmailClaim,
-		OIDCGroupsClaim:                  providers.OIDCGroupsClaim,
+		ProxyPrefix:        "/oauth2",
+		Providers:          providerDefaults(),
+		PingPath:           "/ping",
+		RealClientIPHeader: "X-Real-IP",
+		ForceHTTPS:         false,
+		Cookie:             cookieDefaults(),
+		Session:            sessionOptionsDefaults(),
+		Templates:          templatesDefaults(),
+		SkipAuthPreflight:  false,
+		Logging:            loggingDefaults(),
 	}
 }
 
@@ -171,33 +128,18 @@ func NewFlagSet() *pflag.FlagSet {
 	flagSet.Bool("force-https", false, "force HTTPS redirect for HTTP requests")
 	flagSet.String("redirect-url", "", "the OAuth Redirect URL. ie: \"https://internalapp.yourcompany.com/oauth2/callback\"")
 	flagSet.StringSlice("skip-auth-regex", []string{}, "(DEPRECATED for --skip-auth-route) bypass authentication for requests path's that match (may be given multiple times)")
-	flagSet.StringSlice("skip-auth-route", []string{}, "bypass authentication for requests that match the method & path. Format: method=path_regex OR path_regex alone for all methods")
+	flagSet.StringSlice("skip-auth-route", []string{}, "bypass authentication for requests that match the method & path. Format: method=path_regex OR method!=path_regex. For all methods: path_regex OR !=path_regex")
+	flagSet.StringSlice("api-route", []string{}, "return HTTP 401 instead of redirecting to authentication server if token is not valid. Format: path_regex")
 	flagSet.Bool("skip-provider-button", false, "will skip sign-in-page to directly reach the next step: oauth/start")
 	flagSet.Bool("skip-auth-preflight", false, "will skip authentication for OPTIONS requests")
 	flagSet.Bool("ssl-insecure-skip-verify", false, "skip validation of certificates presented when using HTTPS providers")
 	flagSet.Bool("skip-jwt-bearer-tokens", false, "will skip requests that have verified JWT bearer tokens (default false)")
+	flagSet.Bool("force-json-errors", false, "will force JSON errors instead of HTTP error pages or redirects")
 	flagSet.StringSlice("extra-jwt-issuers", []string{}, "if skip-jwt-bearer-tokens is set, a list of extra JWT issuer=audience pairs (where the issuer URL has a .well-known/openid-configuration or a .well-known/jwks.json)")
 	flagSet.StringSlice("clear-extra-cookie-names", []string{}, "extra cookie names to clear when signing out")
 
 	flagSet.StringSlice("email-domain", []string{}, "authenticate emails with the specified domain (may be given multiple times). Use * to authenticate any email")
-	flagSet.StringSlice("whitelist-domain", []string{}, "allowed domains for redirection after authentication. Prefix domain with a . to allow subdomains (eg .example.com)")
-	flagSet.StringSlice("keycloak-group", []string{}, "restrict logins to members of these groups (may be given multiple times)")
-	flagSet.String("azure-tenant", "common", "go to a tenant-specific or common (tenant-independent) endpoint.")
-	flagSet.String("bitbucket-team", "", "restrict logins to members of this team")
-	flagSet.String("bitbucket-repository", "", "restrict logins to user with access to this repository")
-	flagSet.String("github-org", "", "restrict logins to members of this organisation")
-	flagSet.String("github-team", "", "restrict logins to members of this team")
-	flagSet.String("github-repo", "", "restrict logins to collaborators of this repository")
-	flagSet.String("github-token", "", "the token to use when verifying repository collaborators (must have push access to the repository)")
-	flagSet.StringSlice("github-user", []string{}, "allow users with these usernames to login even if they do not belong to the specified org and team or collaborators (may be given multiple times)")
-	flagSet.StringSlice("gitlab-group", []string{}, "restrict logins to members of this group (may be given multiple times)")
-	flagSet.StringSlice("gitlab-project", []string{}, "restrict logins to members of this project (may be given multiple times) (eg `group/project=accesslevel`). Access level should be a value matching Gitlab access levels (see https://docs.gitlab.com/ee/api/members.html#valid-access-levels), defaulted to 20 if absent")
-	flagSet.StringSlice("google-group", []string{}, "restrict logins to members of this google group (may be given multiple times).")
-	flagSet.String("google-admin-email", "", "the google admin to impersonate for api calls")
-	flagSet.String("google-service-account-json", "", "the path to the service account json credentials")
-	flagSet.String("client-id", "", "the OAuth Client ID: ie: \"123456.apps.googleusercontent.com\"")
-	flagSet.String("client-secret", "", "the OAuth Client Secret")
-	flagSet.String("client-secret-file", "", "the file with OAuth Client Secret")
+	flagSet.StringSlice("whitelist-domain", []string{}, "allowed domains for redirection after authentication. Prefix domain with a . or a *. to allow subdomains (eg .example.com, *.example.com)")
 	flagSet.String("authenticated-emails-file", "", "authenticate against emails via file (one per line)")
 	flagSet.String("htpasswd-file", "", "additionally authenticate against a htpasswd file. Entries must be created with \"htpasswd -B\" for bcrypt encryption")
 	flagSet.StringSlice("htpasswd-user-group", []string{}, "the groups to be set on sessions for htpasswd users (may be given multiple times)")
@@ -216,27 +158,7 @@ func NewFlagSet() *pflag.FlagSet {
 	flagSet.StringSlice("redis-sentinel-connection-urls", []string{}, "List of Redis sentinel connection URLs (eg redis://HOST[:PORT]). Used in conjunction with --redis-use-sentinel")
 	flagSet.Bool("redis-use-cluster", false, "Connect to redis cluster. Must set --redis-cluster-connection-urls to use this feature")
 	flagSet.StringSlice("redis-cluster-connection-urls", []string{}, "List of Redis cluster connection URLs (eg redis://HOST[:PORT]). Used in conjunction with --redis-use-cluster")
-
-	flagSet.String("provider", "google", "OAuth provider")
-	flagSet.String("provider-display-name", "", "Provider display name")
-	flagSet.StringSlice("provider-ca-file", []string{}, "One or more paths to CA certificates that should be used when connecting to the provider.  If not specified, the default Go trust sources are used instead.")
-	flagSet.String("oidc-issuer-url", "", "OpenID Connect issuer URL (ie: https://accounts.google.com)")
-	flagSet.Bool("insecure-oidc-allow-unverified-email", false, "Don't fail if an email address in an id_token is not verified")
-	flagSet.Bool("insecure-oidc-skip-issuer-verification", false, "Do not verify if issuer matches OIDC discovery URL")
-	flagSet.Bool("skip-oidc-discovery", false, "Skip OIDC discovery and use manually supplied Endpoints")
-	flagSet.String("oidc-jwks-url", "", "OpenID Connect JWKS URL (ie: https://www.googleapis.com/oauth2/v3/certs)")
-	flagSet.String("oidc-groups-claim", providers.OIDCGroupsClaim, "which OIDC claim contains the user groups")
-	flagSet.String("oidc-email-claim", providers.OIDCEmailClaim, "which OIDC claim contains the user's email")
-	flagSet.String("login-url", "", "Authentication endpoint")
-	flagSet.String("redeem-url", "", "Token redemption endpoint")
-	flagSet.String("profile-url", "", "Profile access endpoint")
-	flagSet.String("resource", "", "The resource that is protected (Azure AD only)")
-	flagSet.String("validate-url", "", "Access token validation endpoint")
-	flagSet.String("scope", "", "OAuth scope specification")
-	flagSet.String("sign-out-url", "", "Sign out endpoint")
-	flagSet.String("prompt", "", "OIDC prompt")
-	flagSet.String("approval-prompt", "force", "OAuth approval_prompt")
-
+	flagSet.Int("redis-connection-idle-timeout", 0, "Redis connection idle timeout seconds, if Redis timeout option is non-zero, the --redis-connection-idle-timeout must be less then Redis timeout option")
 	flagSet.String("signature-key", "", "GAP-Signature request signature key (algorithm:secretkey)")
 	flagSet.String("acr-values", "", "acr values string:  optional")
 	flagSet.String("jwt-key", "", "private key in PEM format used to sign JWT, so that you can say something like -jwt-key=\"${OAUTH2_PROXY_JWT_KEY}\": required by login.gov")

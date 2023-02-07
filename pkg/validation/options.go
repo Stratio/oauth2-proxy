@@ -16,7 +16,7 @@ import (
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/apis/options"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/ip"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/logger"
-	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/requests"
+	internaloidc "github.com/oauth2-proxy/oauth2-proxy/v7/pkg/providers/oidc"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/util"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/providers"
 )
@@ -32,6 +32,8 @@ func Validate(o *options.Options) error {
 	msgs = append(msgs, validateRedisSessionStore(o)...)
 	msgs = append(msgs, prefixValues("injectRequestHeaders: ", validateHeaders(o.InjectRequestHeaders)...)...)
 	msgs = append(msgs, prefixValues("injectResponseHeaders: ", validateHeaders(o.InjectResponseHeaders)...)...)
+	msgs = append(msgs, validateProviders(o)...)
+	msgs = append(msgs, validateAPIRoutes(o)...)
 	msgs = configureLogger(o.Logging, msgs)
 	msgs = parseSignatureKey(o, msgs)
 
@@ -42,8 +44,8 @@ func Validate(o *options.Options) error {
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
 		http.DefaultClient = &http.Client{Transport: insecureTransport}
-	} else if len(o.ProviderCAFiles) > 0 {
-		pool, err := util.GetCertPool(o.ProviderCAFiles)
+	} else if len(o.Providers[0].CAFiles) > 0 {
+		pool, err := util.GetCertPool(o.Providers[0].CAFiles)
 		if err == nil {
 			transport := http.DefaultTransport.(*http.Transport).Clone()
 			transport.TLSClientConfig = &tls.Config{
@@ -167,7 +169,11 @@ func Validate(o *options.Options) error {
 			var jwtIssuers []jwtIssuer
 			jwtIssuers, msgs = parseJwtIssuers(o.ExtraJwtIssuers, msgs)
 			for _, jwtIssuer := range jwtIssuers {
-				verifier, err := newVerifierFromJwtIssuer(jwtIssuer)
+				verifier, err := newVerifierFromJwtIssuer(
+					o.Providers[0].OIDCConfig.AudienceClaims,
+					o.Providers[0].OIDCConfig.ExtraAudiences,
+					jwtIssuer,
+				)
 				if err != nil {
 					msgs = append(msgs, fmt.Sprintf("error building verifiers: %s", err))
 				}
@@ -235,7 +241,6 @@ func parseProviderInfo(o *options.Options, msgs []string) []string {
 	p.RedeemURL, msgs = parseURL(o.RedeemURL, "redeem", msgs)
 	p.ProfileURL, msgs = parseURL(o.ProfileURL, "profile", msgs)
 	p.ValidateURL, msgs = parseURL(o.ValidateURL, "validate", msgs)
-	p.SignOutURL, msgs = parseURL(o.SignOutURL, "sign-out", msgs)
 	p.ProtectedResource, msgs = parseURL(o.ProtectedResource, "resource", msgs)
 
 	// Make the OIDC options available to all providers that support it
@@ -349,12 +354,6 @@ func parseProviderInfo(o *options.Options, msgs []string) []string {
 				p.JWTKey = signKey
 			}
 		}
-	case *providers.SISProvider:
-		if o.SISRootURL != "" {
-			var rootURL *url.URL
-			rootURL, msgs = parseURL(o.SISRootURL, "sis-root-url", msgs)
-			p.Configure(rootURL)
-		}
 	}
 	return msgs
 }
@@ -399,25 +398,27 @@ func parseJwtIssuers(issuers []string, msgs []string) ([]jwtIssuer, []string) {
 
 // newVerifierFromJwtIssuer takes in issuer information in jwtIssuer info and returns
 // a verifier for that issuer.
-func newVerifierFromJwtIssuer(jwtIssuer jwtIssuer) (*oidc.IDTokenVerifier, error) {
-	config := &oidc.Config{
-		ClientID: jwtIssuer.audience,
+func newVerifierFromJwtIssuer(audienceClaims []string, extraAudiences []string, jwtIssuer jwtIssuer) (internaloidc.IDTokenVerifier, error) {
+	pvOpts := internaloidc.ProviderVerifierOptions{
+		AudienceClaims: audienceClaims,
+		ClientID:       jwtIssuer.audience,
+		ExtraAudiences: extraAudiences,
+		IssuerURL:      jwtIssuer.issuerURI,
 	}
-	// Try as an OpenID Connect Provider first
-	var verifier *oidc.IDTokenVerifier
-	provider, err := oidc.NewProvider(context.Background(), jwtIssuer.issuerURI)
-	if err != nil {
-		// Try as JWKS URI
-		jwksURI := strings.TrimSuffix(jwtIssuer.issuerURI, "/") + "/.well-known/jwks.json"
-		if err := requests.New(jwksURI).Do().Error(); err != nil {
-			return nil, err
-		}
 
-		verifier = oidc.NewVerifier(jwtIssuer.issuerURI, oidc.NewRemoteKeySet(context.Background(), jwksURI), config)
-	} else {
-		verifier = provider.Verifier(config)
+	pv, err := internaloidc.NewProviderVerifier(context.TODO(), pvOpts)
+	if err != nil {
+		// If the discovery didn't work, try again without discovery
+		pvOpts.JWKsURL = strings.TrimSuffix(jwtIssuer.issuerURI, "/") + "/.well-known/jwks.json"
+		pvOpts.SkipDiscovery = true
+
+		pv, err = internaloidc.NewProviderVerifier(context.TODO(), pvOpts)
+		if err != nil {
+			return nil, fmt.Errorf("could not construct provider verifier for JWT Issuer: %v", err)
+		}
 	}
-	return verifier, nil
+
+	return pv.Verifier(), nil
 }
 
 // jwtIssuer hold parsed JWT issuer info that's used to construct a verifier.

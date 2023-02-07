@@ -66,17 +66,3 @@ Redis Cluster is available to be the backend store as well. To leverage it, you 
 `--redis-use-cluster=true` flag, and configure the flags `--redis-cluster-connection-urls` appropriately.
 
 Note that flags `--redis-use-sentinel=true` and `--redis-use-cluster=true` are mutually exclusive.
-
-### JWT Storage
-
-The JWT Storage backend stores sessions as signed JWTs.
-
-All session information is stored in token claims and send back to the browser as a cookie,
-so it is transferred with each request.
-
-Only basic information is persisted, no OIDC tokens or access tokens are created as claims in order to limit the size of the token itself.
-
-#### Usage
-
-When using the jwt store, specify `--session-store-type=jwt` as well as the signing key, via
-`--jwt-session-key=\"${OAUTH2_PROXY_JWT_SESSION_KEY}\"` or `--jwt-session-key-file=/etc/ssl/private/jwt_session_signing_key.pem`.

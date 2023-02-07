@@ -2,7 +2,7 @@ package sessions
 
 import (
 	"bytes"
-	"errors"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,9 +10,10 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/clock"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/encryption"
-	"github.com/pierrec/lz4"
-	"github.com/vmihailenco/msgpack/v4"
+	"github.com/pierrec/lz4/v4"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 // SessionState is used to store information about the currently authenticated user session
@@ -24,16 +25,71 @@ type SessionState struct {
 	IDToken      string `msgpack:"it,omitempty"`
 	RefreshToken string `msgpack:"rt,omitempty"`
 
+	Nonce []byte `msgpack:"n,omitempty"`
+
 	Email             string   `msgpack:"e,omitempty"`
 	User              string   `msgpack:"u,omitempty"`
 	Groups            []string `msgpack:"g,omitempty"`
 	PreferredUsername string   `msgpack:"pu,omitempty"`
 	Tenant            string   `msgpack:"t,omitempty"`
+
+	// Internal helpers, not serialized
+	Clock clock.Clock `msgpack:"-"`
+	Lock  Lock        `msgpack:"-"`
+}
+
+func (s *SessionState) ObtainLock(ctx context.Context, expiration time.Duration) error {
+	if s.Lock == nil {
+		s.Lock = &NoOpLock{}
+	}
+	return s.Lock.Obtain(ctx, expiration)
+}
+
+func (s *SessionState) RefreshLock(ctx context.Context, expiration time.Duration) error {
+	if s.Lock == nil {
+		s.Lock = &NoOpLock{}
+	}
+	return s.Lock.Refresh(ctx, expiration)
+}
+
+func (s *SessionState) ReleaseLock(ctx context.Context) error {
+	if s.Lock == nil {
+		s.Lock = &NoOpLock{}
+	}
+	return s.Lock.Release(ctx)
+}
+
+func (s *SessionState) PeekLock(ctx context.Context) (bool, error) {
+	if s.Lock == nil {
+		s.Lock = &NoOpLock{}
+	}
+	return s.Lock.Peek(ctx)
+}
+
+// CreatedAtNow sets a SessionState's CreatedAt to now
+func (s *SessionState) CreatedAtNow() {
+	now := s.Clock.Now()
+	s.CreatedAt = &now
+}
+
+// SetExpiresOn sets an expiration
+func (s *SessionState) SetExpiresOn(exp time.Time) {
+	s.ExpiresOn = &exp
+}
+
+// ExpiresIn sets an expiration a certain duration from CreatedAt.
+// CreatedAt will be set to time.Now if it is unset.
+func (s *SessionState) ExpiresIn(d time.Duration) {
+	if s.CreatedAt == nil {
+		s.CreatedAtNow()
+	}
+	exp := s.CreatedAt.Add(d)
+	s.ExpiresOn = &exp
 }
 
 // IsExpired checks whether the session has expired
 func (s *SessionState) IsExpired() bool {
-	if s.ExpiresOn != nil && !s.ExpiresOn.IsZero() && s.ExpiresOn.Before(time.Now()) {
+	if s.ExpiresOn != nil && !s.ExpiresOn.IsZero() && s.ExpiresOn.Before(s.Clock.Now()) {
 		return true
 	}
 	return false
@@ -42,7 +98,7 @@ func (s *SessionState) IsExpired() bool {
 // Age returns the age of a session
 func (s *SessionState) Age() time.Duration {
 	if s.CreatedAt != nil && !s.CreatedAt.IsZero() {
-		return time.Now().Truncate(time.Second).Sub(*s.CreatedAt)
+		return s.Clock.Now().Truncate(time.Second).Sub(*s.CreatedAt)
 	}
 	return 0
 }
@@ -104,6 +160,11 @@ func (s *SessionState) GetClaim(claim string) []string {
 	}
 }
 
+// CheckNonce compares the Nonce against a potential hash of it
+func (s *SessionState) CheckNonce(hashed string) bool {
+	return encryption.CheckNonce(s.Nonce, hashed)
+}
+
 // EncodeSessionState returns an encrypted, lz4 compressed, MessagePack encoded session
 func (s *SessionState) EncodeSessionState(c encryption.Cipher, compress bool) ([]byte, error) {
 	packed, err := msgpack.Marshal(s)
@@ -159,10 +220,10 @@ func DecodeSessionState(data []byte, c encryption.Cipher, compressed bool) (*Ses
 func lz4Compress(payload []byte) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	zw := lz4.NewWriter(nil)
-	zw.Header = lz4.Header{
-		BlockMaxSize:     65536,
-		CompressionLevel: 0,
-	}
+	zw.Apply(
+		lz4.BlockSizeOption(lz4.BlockSize(65536)),
+		lz4.CompressionLevelOption(lz4.Fast),
+	)
 	zw.Reset(buf)
 
 	reader := bytes.NewReader(payload)
@@ -175,7 +236,7 @@ func lz4Compress(payload []byte) ([]byte, error) {
 		return nil, fmt.Errorf("error closing lz4 writer: %w", err)
 	}
 
-	compressed, err := ioutil.ReadAll(buf)
+	compressed, err := io.ReadAll(buf)
 	if err != nil {
 		return nil, fmt.Errorf("error reading lz4 buffer: %w", err)
 	}
@@ -194,7 +255,7 @@ func lz4Decompress(compressed []byte) ([]byte, error) {
 		return nil, fmt.Errorf("error copying lz4 stream to buffer: %w", err)
 	}
 
-	payload, err := ioutil.ReadAll(buf)
+	payload, err := io.ReadAll(buf)
 	if err != nil {
 		return nil, fmt.Errorf("error reading lz4 buffer: %w", err)
 	}

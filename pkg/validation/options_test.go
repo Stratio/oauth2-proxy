@@ -2,7 +2,6 @@ package validation
 
 import (
 	"crypto"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"strings"
@@ -17,18 +16,20 @@ const (
 	cookieSecret = "secretthirtytwobytes+abcdefghijk"
 	clientID     = "bazquux"
 	clientSecret = "xyzzyplugh"
+	providerID   = "providerID"
 )
 
 func testOptions() *options.Options {
 	o := options.NewOptions()
-	o.UpstreamServers = append(o.UpstreamServers, options.Upstream{
+	o.UpstreamServers.Upstreams = append(o.UpstreamServers.Upstreams, options.Upstream{
 		ID:   "upstream",
 		Path: "/",
 		URI:  "http://127.0.0.1:8080/",
 	})
 	o.Cookie.Secret = cookieSecret
-	o.ClientID = clientID
-	o.ClientSecret = clientSecret
+	o.Providers[0].ID = providerID
+	o.Providers[0].ClientID = clientID
+	o.Providers[0].ClientSecret = clientSecret
 	o.EmailDomains = []string{"*"}
 	return o
 }
@@ -48,69 +49,15 @@ func TestNewOptions(t *testing.T) {
 
 	expected := errorMsg([]string{
 		"missing setting: cookie-secret",
-		"missing setting: client-id",
+		"provider has empty id: ids are required for all providers",
+		"provider missing setting: client-id",
 		"missing setting: client-secret or client-secret-file"})
 	assert.Equal(t, expected, err.Error())
 }
 
-func TestClientSecretFileOptionFails(t *testing.T) {
-	o := options.NewOptions()
-	o.Cookie.Secret = cookieSecret
-	o.ClientID = clientID
-	o.ClientSecretFile = clientSecret
-	o.EmailDomains = []string{"*"}
-	err := Validate(o)
-	assert.NotEqual(t, nil, err)
-
-	p := o.GetProvider().Data()
-	assert.Equal(t, clientSecret, p.ClientSecretFile)
-	assert.Equal(t, "", p.ClientSecret)
-
-	s, err := p.GetClientSecret()
-	assert.NotEqual(t, nil, err)
-	assert.Equal(t, "", s)
-}
-
-func TestClientSecretFileOption(t *testing.T) {
-	var err error
-	f, err := ioutil.TempFile("", "client_secret_temp_file_")
-	if err != nil {
-		t.Fatalf("failed to create temp file: %v", err)
-	}
-	_, err = f.WriteString("testcase")
-	if err != nil {
-		t.Fatalf("failed to write to temp file: %v", err)
-	}
-	if err := f.Close(); err != nil {
-		t.Fatalf("failed to close temp file: %v", err)
-	}
-	clientSecretFileName := f.Name()
-	defer func(t *testing.T) {
-		if err := os.Remove(clientSecretFileName); err != nil {
-			t.Fatalf("failed to delete temp file: %v", err)
-		}
-	}(t)
-
-	o := options.NewOptions()
-	o.Cookie.Secret = cookieSecret
-	o.ClientID = clientID
-	o.ClientSecretFile = clientSecretFileName
-	o.EmailDomains = []string{"*"}
-	err = Validate(o)
-	assert.Equal(t, nil, err)
-
-	p := o.GetProvider().Data()
-	assert.Equal(t, clientSecretFileName, p.ClientSecretFile)
-	assert.Equal(t, "", p.ClientSecret)
-
-	s, err := p.GetClientSecret()
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "testcase", s)
-}
-
 func TestGoogleGroupOptions(t *testing.T) {
 	o := testOptions()
-	o.GoogleGroups = []string{"googlegroup"}
+	o.Providers[0].GoogleConfig.Groups = []string{"googlegroup"}
 	err := Validate(o)
 	assert.NotEqual(t, nil, err)
 
@@ -122,9 +69,9 @@ func TestGoogleGroupOptions(t *testing.T) {
 
 func TestGoogleGroupInvalidFile(t *testing.T) {
 	o := testOptions()
-	o.GoogleGroups = []string{"test_group"}
-	o.GoogleAdminEmail = "admin@example.com"
-	o.GoogleServiceAccountJSON = "file_doesnt_exist.json"
+	o.Providers[0].GoogleConfig.Groups = []string{"test_group"}
+	o.Providers[0].GoogleConfig.AdminEmail = "admin@example.com"
+	o.Providers[0].GoogleConfig.ServiceAccountJSON = "file_doesnt_exist.json"
 	err := Validate(o)
 	assert.NotEqual(t, nil, err)
 
@@ -148,18 +95,6 @@ func TestRedirectURL(t *testing.T) {
 	expected := &url.URL{
 		Scheme: "https", Host: "myhost.com", Path: "/oauth2/callback"}
 	assert.Equal(t, expected, o.GetRedirectURL())
-}
-
-func TestDefaultProviderApiSettings(t *testing.T) {
-	o := testOptions()
-	assert.Equal(t, nil, Validate(o))
-	p := o.GetProvider().Data()
-	assert.Equal(t, "https://accounts.google.com/o/oauth2/auth?access_type=offline",
-		p.LoginURL.String())
-	assert.Equal(t, "https://www.googleapis.com/oauth2/v3/token",
-		p.RedeemURL.String())
-	assert.Equal(t, "", p.ProfileURL.String())
-	assert.Equal(t, "profile email", p.Scope)
 }
 
 func TestCookieRefreshMustBeLessThanCookieExpire(t *testing.T) {
@@ -223,23 +158,6 @@ func TestValidateSignatureKeyUnsupportedAlgorithm(t *testing.T) {
 		"  unsupported signature hash algorithm: "+o.SignatureKey)
 }
 
-func TestSkipOIDCDiscovery(t *testing.T) {
-	o := testOptions()
-	o.ProviderType = "oidc"
-	o.OIDCIssuerURL = "https://login.microsoftonline.com/fabrikamb2c.onmicrosoft.com/v2.0/"
-	o.SkipOIDCDiscovery = true
-
-	err := Validate(o)
-	assert.Equal(t, "invalid configuration:\n"+
-		"  missing setting: login-url\n  missing setting: redeem-url\n  missing setting: oidc-jwks-url", err.Error())
-
-	o.LoginURL = "https://login.microsoftonline.com/fabrikamb2c.onmicrosoft.com/oauth2/v2.0/authorize?p=b2c_1_sign_in"
-	o.RedeemURL = "https://login.microsoftonline.com/fabrikamb2c.onmicrosoft.com/oauth2/v2.0/token?p=b2c_1_sign_in"
-	o.OIDCJwksURL = "https://login.microsoftonline.com/fabrikamb2c.onmicrosoft.com/discovery/v2.0/keys"
-
-	assert.Equal(t, nil, Validate(o))
-}
-
 func TestGCPHealthcheck(t *testing.T) {
 	o := testOptions()
 	o.GCPHealthChecks = true
@@ -286,13 +204,13 @@ func TestRealClientIPHeader(t *testing.T) {
 }
 
 func TestProviderCAFilesError(t *testing.T) {
-	file, err := ioutil.TempFile("", "absent.*.crt")
+	file, err := os.CreateTemp("", "absent.*.crt")
 	assert.NoError(t, err)
 	assert.NoError(t, file.Close())
 	assert.NoError(t, os.Remove(file.Name()))
 
 	o := testOptions()
-	o.ProviderCAFiles = append(o.ProviderCAFiles, file.Name())
+	o.Providers[0].CAFiles = append(o.Providers[0].CAFiles, file.Name())
 	err = Validate(o)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unable to load provider CA file(s)")
