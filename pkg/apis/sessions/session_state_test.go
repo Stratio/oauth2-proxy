@@ -34,8 +34,9 @@ func TestString(t *testing.T) {
 				Email:             "email@email.email",
 				User:              "some.user",
 				PreferredUsername: "preferred.user",
+				Username:          "some.user",
 			},
-			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user}",
+			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user Username:some.user}",
 		},
 		{
 			name: "Full Session",
