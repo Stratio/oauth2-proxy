@@ -232,7 +232,6 @@ func (s *SessionState) validate() error {
 		s.IDToken,
 		s.RefreshToken,
 		s.Username,
-		s.Tenants,
 	} {
 		if !utf8.ValidString(field) {
 			return errors.New("invalid non-UTF8 field in session")
