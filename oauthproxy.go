@@ -460,18 +460,6 @@ func (p *OAuthProxy) makeCookie(req *http.Request, name string, value string, ex
 	}
 }
 
-func (p *OAuthProxy) makeExtraCookie(req *http.Request, name string, value string, expiration time.Duration, now time.Time) *http.Cookie {
-	return &http.Cookie{
-		Name:     name,
-		Value:    value,
-		Path:     p.CookiePath,
-		HttpOnly: p.CookieHTTPOnly,
-		Secure:   p.CookieSecure,
-		Expires:  now.Add(expiration),
-		SameSite: cookies.ParseSameSite(p.CookieSameSite),
-	}
-}
-
 // ClearCSRFCookie creates a cookie to unset the CSRF cookie stored in the user's
 // session
 func (p *OAuthProxy) ClearCSRFCookie(rw http.ResponseWriter, req *http.Request) {
@@ -503,7 +491,7 @@ func (p *OAuthProxy) ClearExtraCookies(rw http.ResponseWriter, req *http.Request
 			continue
 		}
 		logger.Printf("Extra cookie %s found in request: %#v", name, c)
-		http.SetCookie(rw, p.makeExtraCookie(req, c.Name, "", time.Hour*-1, time.Now()))
+		http.SetCookie(rw, p.makeCookie(req, c.Name, "", time.Hour*-1, time.Now()))
 	}
 }
 
