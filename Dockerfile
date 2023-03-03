@@ -12,12 +12,16 @@ WORKDIR $GOPATH/src/github.com/oauth2-proxy/oauth2-proxy
 
 # Fetch dependencies
 COPY go.mod go.sum ./
-RUN GO111MODULE=on go mod download
+RUN go mod download
 
 # Now pull in our code
 COPY . .
 
+# Arguments go here so that the previous steps can be cached if no external
+#  sources have changed.
 ARG VERSION
+ARG TARGETPLATFORM="linux/amd64"
+ARG BUILDPLATFORM
 
 # Build binary and make sure there is at least an empty key file.
 #  This is useful for GCP App Engine custom runtime builds, because
@@ -40,13 +44,12 @@ RUN case ${TARGETPLATFORM} in \
     GOARCH=${GOARCH} VERSION=${VERSION} make build && touch jwt_signing_key.pem
 
 # Copy binary to alpine
-FROM alpine:3.16
+FROM ${RUNTIME_IMAGE}
 COPY nsswitch.conf /etc/nsswitch.conf
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /go/src/github.com/oauth2-proxy/oauth2-proxy/oauth2-proxy /bin/oauth2-proxy
 COPY --from=builder /go/src/github.com/oauth2-proxy/oauth2-proxy/jwt_signing_key.pem /etc/ssl/private/jwt_signing_key.pem
 
-USER 2000:2000
+# UID/GID 65532 is also known as nonroot user in distroless image
+USER 65532:65532
 
 ENTRYPOINT ["/bin/oauth2-proxy"]
-    

@@ -29,6 +29,8 @@ type Provider interface {
 	ValidateSession(ctx context.Context, s *sessions.SessionState) bool
 	RefreshSession(ctx context.Context, s *sessions.SessionState) (bool, error)
 	CreateSessionFromToken(ctx context.Context, token string) (*sessions.SessionState, error)
+	// Stratio SingOutUrl
+	GetSignOutURL(redirectURI string) string
 }
 
 func NewProvider(providerConfig options.Provider) (Provider, error) {

@@ -146,3 +146,8 @@ func (p *ProviderData) CreateSessionFromToken(ctx context.Context, token string)
 	}
 	return nil, ErrNotImplemented
 }
+
+// GetSignOutURL for this provider if any
+func (p *ProviderData) GetSignOutURL(redirectURI string) string {
+	return redirectURI
+}
