@@ -126,6 +126,7 @@ func NewFlagSet() *pflag.FlagSet {
 	flagSet.Bool("skip-jwt-bearer-tokens", false, "will skip requests that have verified JWT bearer tokens (default false)")
 	flagSet.Bool("force-json-errors", false, "will force JSON errors instead of HTTP error pages or redirects")
 	flagSet.StringSlice("extra-jwt-issuers", []string{}, "if skip-jwt-bearer-tokens is set, a list of extra JWT issuer=audience pairs (where the issuer URL has a .well-known/openid-configuration or a .well-known/jwks.json)")
+	flagSet.StringSlice("clear-extra-cookie-names", []string{}, "extra cookie names to clear when signing out")
 
 	flagSet.StringSlice("email-domain", []string{}, "authenticate emails with the specified domain (may be given multiple times). Use * to authenticate any email")
 	flagSet.StringSlice("whitelist-domain", []string{}, "allowed domains for redirection after authentication. Prefix domain with a . or a *. to allow subdomains (eg .example.com, *.example.com)")
@@ -151,6 +152,11 @@ func NewFlagSet() *pflag.FlagSet {
 	flagSet.Int("redis-connection-idle-timeout", 0, "Redis connection idle timeout seconds, if Redis timeout option is non-zero, the --redis-connection-idle-timeout must be less then Redis timeout option")
 	flagSet.String("signature-key", "", "GAP-Signature request signature key (algorithm:secretkey)")
 	flagSet.Bool("gcp-healthchecks", false, "Enable GCP/GKE healthcheck endpoints")
+
+	flagSet.String("sis-root-url", "", "Stratio SIS root URL")
+	flagSet.String("sign-out-url", "", "Sign out endpoint")
+	flagSet.String("jwt-session-key", "", "private key in PEM format used to sign session JWT, so that you can say something like --jwt-session-key=\"${OAUTH2_PROXY_JWT_SESSION_KEY}\"")
+	flagSet.String("jwt-session-key-file", "", "path to the private key file in PEM format used to sign the session JWT so that you can say something like --jwt-session-key-file=/etc/ssl/private/jwt_session_signing_key.pem")
 
 	flagSet.AddFlagSet(cookieFlagSet())
 	flagSet.AddFlagSet(loggingFlagSet())

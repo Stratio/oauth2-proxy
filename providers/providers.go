@@ -32,6 +32,7 @@ type Provider interface {
 }
 
 func NewProvider(providerConfig options.Provider) (Provider, error) {
+	fmt.Println("New provider ", providerConfig)
 	providerData, err := newProviderDataFromConfig(providerConfig)
 	if err != nil {
 		return nil, fmt.Errorf("could not create provider data: %v", err)
@@ -65,6 +66,8 @@ func NewProvider(providerConfig options.Provider) (Provider, error) {
 		return NewNextcloudProvider(providerData), nil
 	case options.OIDCProvider:
 		return NewOIDCProvider(providerData, providerConfig.OIDCConfig), nil
+	case options.SISProvider:
+		return NewSISProvider(providerData, providerConfig.SISConfig), nil
 	default:
 		return nil, fmt.Errorf("unknown provider type %q", providerConfig.Type)
 	}
@@ -77,12 +80,12 @@ func newProviderDataFromConfig(providerConfig options.Provider) (*ProviderData, 
 		ClientSecret:     providerConfig.ClientSecret,
 		ClientSecretFile: providerConfig.ClientSecretFile,
 	}
-
+	fmt.Println("Provider data = ", p)
 	needsVerifier, err := providerRequiresOIDCProviderVerifier(providerConfig.Type)
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("Needs verifier? ", needsVerifier)
 	if needsVerifier {
 		pv, err := internaloidc.NewProviderVerifier(context.TODO(), internaloidc.ProviderVerifierOptions{
 			AudienceClaims:         providerConfig.OIDCConfig.AudienceClaims,
@@ -180,6 +183,8 @@ func providerRequiresOIDCProviderVerifier(providerType options.ProviderType) (bo
 		return false, nil
 	case options.ADFSProvider, options.AzureProvider, options.GitLabProvider, options.KeycloakOIDCProvider, options.OIDCProvider:
 		return true, nil
+	case options.SISProvider:
+		return false, nil
 	default:
 		return false, fmt.Errorf("unknown provider type: %s", providerType)
 	}

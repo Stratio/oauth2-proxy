@@ -29,6 +29,8 @@ type SessionState struct {
 	Groups            []string `msgpack:"g,omitempty"`
 	PreferredUsername string   `msgpack:"pu,omitempty"`
 
+	Tenant string `msgpack:"t,omitempty"`
+
 	// Internal helpers, not serialized
 	Clock clock.Clock `msgpack:"-"`
 	Lock  Lock        `msgpack:"-"`
@@ -102,6 +104,9 @@ func (s *SessionState) Age() time.Duration {
 // String constructs a summary of the session state
 func (s *SessionState) String() string {
 	o := fmt.Sprintf("Session{email:%s user:%s PreferredUsername:%s", s.Email, s.User, s.PreferredUsername)
+	if s.Tenant != "" {
+		o += fmt.Sprintf(" tenant:%s", s.Tenant)
+	}
 	if s.AccessToken != "" {
 		o += " token:true"
 	}

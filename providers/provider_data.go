@@ -56,6 +56,9 @@ type ProviderData struct {
 	getAuthorizationHeaderFunc func(string) http.Header
 	loginURLParameterDefaults  url.Values
 	loginURLParameterOverrides map[string]*regexp.Regexp
+
+	// Stratio
+	SignOutURL *url.URL
 }
 
 // Data returns the ProviderData
@@ -184,6 +187,7 @@ type providerDefaults struct {
 	redeemURL   *url.URL
 	profileURL  *url.URL
 	validateURL *url.URL
+	signOutURL  *url.URL
 	scope       string
 }
 
@@ -193,6 +197,7 @@ func (p *ProviderData) setProviderDefaults(defaults providerDefaults) {
 	p.RedeemURL = defaultURL(p.RedeemURL, defaults.redeemURL)
 	p.ProfileURL = defaultURL(p.ProfileURL, defaults.profileURL)
 	p.ValidateURL = defaultURL(p.ValidateURL, defaults.validateURL)
+	p.SignOutURL = defaultURL(p.SignOutURL, defaults.signOutURL)
 
 	if p.Scope == "" {
 		p.Scope = defaults.scope

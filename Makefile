@@ -1,3 +1,7 @@
+# Stratio CICD flow
+# Get version
+version ?= $(shell cat VERSION)
+
 GO ?= go
 GOLANGCILINT ?= golangci-lint
 
@@ -15,6 +19,10 @@ GO_VERSION_VALIDATION_ERR_MSG = Golang version is not supported, please update t
 
 ifeq ($(COVER),true)
 TESTCOVER ?= -coverprofile c.out
+endif
+
+ifeq ($(LINT),true)
+TESTLINT ?= lint
 endif
 
 .PHONY: all
@@ -80,7 +88,7 @@ verify-generate: generate
 	git diff --exit-code
 
 .PHONY: test
-test: lint
+test: $(TESTLINT)
 	GO111MODULE=on $(GO) test $(TESTCOVER) -v -race ./...
 
 .PHONY: release
@@ -108,3 +116,7 @@ validate-go-version:
 .PHONY: local-env-%
 local-env-%:
 	make -C contrib/local-environment $*
+
+# Stratio CICD flow
+change-version:
+	@echo $(version) > VERSION

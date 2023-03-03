@@ -122,6 +122,7 @@ An example [oauth2-proxy.cfg](https://github.com/oauth2-proxy/oauth2-proxy/blob/
 | `--set-authorization-header` | bool | set Authorization Bearer response header (useful in Nginx auth_request mode) | false |
 | `--set-basic-auth` | bool | set HTTP Basic Auth information in response (useful in Nginx auth_request mode) | false |
 | `--show-debug-on-error` | bool | show detailed error information on error pages (WARNING: this may contain sensitive information - do not use in production) | false |
+| `--sign-out-url` | string | Sign out endpoint | |
 | `--signature-key` | string | GAP-Signature request signature key (algorithm:secretkey) | |
 | `--silence-ping-logging` | bool | disable logging of requests to ping endpoint | false |
 | `--skip-auth-preflight` | bool | will skip authentication for OPTIONS requests | false |

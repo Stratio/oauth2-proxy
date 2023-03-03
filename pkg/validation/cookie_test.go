@@ -275,7 +275,8 @@ func TestValidateCookie(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			errStrings := validateCookie(tc.cookie)
+			errStrings := validateCookieSecret(tc.cookie.Secret)
+			errStrings = append(errStrings, validateCookie(tc.cookie)...)
 			g := NewWithT(t)
 
 			g.Expect(errStrings).To(ConsistOf(tc.errStrings))

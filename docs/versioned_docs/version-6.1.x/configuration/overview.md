@@ -163,7 +163,7 @@ An example [oauth2-proxy.cfg](https://github.com/oauth2-proxy/oauth2-proxy/blob/
 | `--reverse-proxy` | bool | are we running behind a reverse proxy, controls whether headers like X-Real-IP are accepted | false |
 | `--scope` | string | OAuth scope specification | |
 | `--session-cookie-minimal` | bool | strip OAuth tokens from cookie session stores if they aren't needed (cookie session store only) | false |
-| `--session-store-type` | string | [Session data storage backend](sessions.md); redis or cookie | cookie |
+| `--session-store-type` | string | [Session data storage backend](sessions.md); redis, cookie or jwt | cookie |
 | `--set-xauthrequest` | bool | set X-Auth-Request-User, X-Auth-Request-Email and X-Auth-Request-Preferred-Username response headers (useful in Nginx auth_request mode). When used with `--pass-access-token`, X-Auth-Request-Access-Token is added to response headers.  | false |
 | `--set-authorization-header` | bool | set Authorization Bearer response header (useful in Nginx auth_request mode) | false |
 | `--set-basic-auth` | bool | set HTTP Basic Auth information in response (useful in Nginx auth_request mode) | false |
@@ -179,6 +179,7 @@ An example [oauth2-proxy.cfg](https://github.com/oauth2-proxy/oauth2-proxy/blob/
 | `--ssl-upstream-insecure-skip-verify` | bool | skip validation of certificates presented when using HTTPS upstreams | false |
 | `--standard-logging` | bool | Log standard runtime information | true |
 | `--standard-logging-format` | string | Template for standard log lines | see [Logging Configuration](#logging-configuration) |
+| `--sis-root-url` | string | Stratio SIS root URL | |
 | `--tls-cert-file` | string | path to certificate file | |
 | `--tls-key-file` | string | path to private key file | |
 | `--upstream` | string \| list | the http url(s) of the upstream endpoint, file:// paths for static files or `static://<status_code>` for static response. Routing is based on the path | |
@@ -187,6 +188,8 @@ An example [oauth2-proxy.cfg](https://github.com/oauth2-proxy/oauth2-proxy/blob/
 | `--version` | n/a | print version string | |
 | `--whitelist-domain` | string \| list | allowed domains for redirection after authentication. Prefix domain with a `.` to allow subdomains (e.g. `.example.com`)&nbsp;\[[2](#footnote2)\] | |
 | `--trusted-ip` | string \| list | list of IPs or CIDR ranges to allow to bypass authentication (may be given multiple times). When combined with `--reverse-proxy` and optionally `--real-client-ip-header` this will evaluate the trust of the IP stored in an HTTP header by a reverse proxy rather than the layer-3/4 remote address. WARNING: trusting IPs has inherent security flaws, especially when obtaining the IP address from an HTTP header (reverse-proxy mode). Use this option only if you understand the risks and how to manage them. | |
+| `--jwt-session-key` | string | private key in PEM format used to sign session JWT, so that you can say something like `--jwt-session-key="${OAUTH2_PROXY_JWT_SESSION_KEY}"` | |
+| `--jwt-session-key-file` | string | path to the private key file in PEM format used to sign the session JWT so that you can say something like `--jwt-session-key-file=/etc/ssl/private/jwt_session_signing_key.pem` | |
 
 \[<a name="footnote1">1</a>\]: Only these providers support `--cookie-refresh`: GitLab, Google and OIDC
 
@@ -409,4 +412,25 @@ You have to substitute *name* with the actual cookie name you configured via --c
 
 :::note
 If you set up your OAuth2 provider to rotate your client secret, you can use the `client-secret-file` option to reload the secret when it is updated.
-:::
+
+## Using and testing the SIS provider
+To test the SIS provider with JWT backend, a few things are needed before we launch the proxy.
+
+1. Register a new app in SIS
+
+Send a request like the one in the example below to the sis-api component:
+
+`curl -X PUT --cert /opt/mesosphere/etc/pki/node.pem --key /opt/mesosphere/etc/pki/node.key -H "Content-Type: application/json" -d '{"name": "local","serviceId": "http://127.0.0.1:4180/oauth2/callback","clientSecret": "local"}' https://sis-api.service.eos.mike.hetzner.stratio.com:9006/registry/services/local`
+
+2. Grab SIS CA file and save it to your local filesystem
+3. Generate a new JWT signing key:
+
+`openssl genrsa -out jwt-key 2048`
+
+4. Launch `oauth2-proxy` with the following flags:
+
+`oauth2-proxy --provider=sis --client-id=local --client-secret=local --email-domain="*"  --redirect-url=http://127.0.0.1:4180 --provider-ca-file=sis-ca.crt --cookie-secure=false --sis-root-url=https://bootstrap.mike.hetzner.stratio.com:9005/sso --session-store-type=jwt --jwt-session-key-file=jwt-key`
+
+This will launch a new proxy using the sis provider and jwt session storage.
+
+5. Point your browser to http://127.0.0.1:4180/oauth2/start?rd=/oauth2/userinfo, you should be redirected to SIS login page, and after you are successfully authenticated, you'll be redirected to the userinfo page where your username and email is shown.
