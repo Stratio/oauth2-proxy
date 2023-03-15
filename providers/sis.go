@@ -85,14 +85,11 @@ func NewSISProvider(p *ProviderData, opts options.SISOptions) *SISProvider {
 		return nil
 	}
 	provider.Configure(rootUrl)
-	fmt.Printf("SIS provider data %+v\n", *provider.ProviderData)
-	fmt.Printf("SIS provider %+v\n", provider)
 	return provider
 }
 
 // Configure defaults the SISProvider configuration options
 func (p *SISProvider) Configure(rootURL *url.URL) {
-	fmt.Println("Root url ", rootURL.String())
 	basePath := strings.TrimSuffix(rootURL.Path, "/")
 	if p.LoginURL.String() == sisDefaultLoginURL.String() {
 		p.LoginURL = &url.URL{

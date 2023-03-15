@@ -43,7 +43,11 @@ func TestSISProviderOverrides(t *testing.T) {
 				Scheme: "https",
 				Host:   "api.example.com",
 				Path:   "/logout"},
-			Scope: "profile"}, options.SISOptions{})
+			Scope: "profile"},
+		options.SISOptions{
+			SISRootURL: "https://sisurl.example.com",
+		},
+	)
 	assert.NotEqual(t, nil, p)
 	assert.Equal(t, "SIS", p.Data().ProviderName)
 	assert.Equal(t, "https://example.com/login/oauth/authorize",
@@ -62,7 +66,6 @@ func TestSISProviderRedeem(t *testing.T) {
 		"/sso/oauth2.0/accessToken": "access_token=imaginary_access_token&expires=10000",
 	})
 	defer b.Close()
-
 	bURL, _ := url.Parse(b.URL + "/sso")
 	p := testSISProvider(bURL)
 	s, err := p.Redeem(context.Background(), "imaginary_redirect_url", "imaginary_code", "imaginary_code_verifier")
@@ -110,7 +113,11 @@ func testSISProvider(rootURL *url.URL) *SISProvider {
 			RedeemURL:    &url.URL{},
 			ProfileURL:   &url.URL{},
 			ValidateURL:  &url.URL{},
-			Scope:        ""}, options.SISOptions{})
+			Scope:        ""},
+		options.SISOptions{
+			SISRootURL: rootURL.String(),
+		},
+	)
 	p.Configure(rootURL)
 	return p
 }
