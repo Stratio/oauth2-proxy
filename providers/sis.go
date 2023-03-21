@@ -72,19 +72,21 @@ func NewSISProvider(p *ProviderData, opts options.SISOptions) *SISProvider {
 		signOutURL:  sisDefaultSignOutURL,
 		scope:       sisDefaultScope,
 	})
-
 	provider := &SISProvider{
 		ProviderData:          p,
 		ClearExtraCookieNames: opts.ClearExtraCookieNames,
 		SISRootURL:            opts.SISRootURL,
 	}
 
-	rootUrl, err := url.Parse(opts.SISRootURL)
-	if err != nil {
-		fmt.Printf("Error parsing SISRootURL=%v", opts.SISRootURL)
-		return nil
+	if opts.SISRootURL != "" {
+		rootUrl, err := url.Parse(opts.SISRootURL)
+		if err != nil {
+			fmt.Printf("Error parsing SISRootURL=%v", opts.SISRootURL)
+			return nil
+		}
+		provider.Configure(rootUrl)
 	}
-	provider.Configure(rootUrl)
+
 	return provider
 }
 

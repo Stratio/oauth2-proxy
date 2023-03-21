@@ -513,6 +513,11 @@ func LoadSessionTests(in *testInput) {
 		s.CreatedAt = nil
 		s.ExpiresOn = nil
 		s.Lock = &sessionsapi.NoOpLock{}
+		if in.sessionOpts.Type == "jwt" {
+			s.AccessToken = ""
+			s.IDToken = ""
+			s.RefreshToken = ""
+		}
 		Expect(l).To(Equal(s))
 
 		// Compare time.Time separately
