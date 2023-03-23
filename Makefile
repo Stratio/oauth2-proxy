@@ -89,7 +89,7 @@ verify-generate: generate
 
 .PHONY: test
 test: $(TESTLINT)
-	GO111MODULE=on $(GO) test $(TESTCOVER) -v ./...
+	GO111MODULE=on $(GO) test $(TESTCOVER) -tags skip -v ./...
 
 .PHONY: release
 release: validate-go-version lint test
