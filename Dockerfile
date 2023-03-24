@@ -21,7 +21,7 @@ COPY . .
 #  sources have changed.
 ARG VERSION
 ARG TARGETPLATFORM="linux/amd64"
-ARG BUILDPLATFORM="linux/amd64"
+ARG BUILDPLATFORM
 
 # Build binary and make sure there is at least an empty key file.
 #  This is useful for GCP App Engine custom runtime builds, because
