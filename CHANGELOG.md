@@ -1,12 +1,16 @@
 # Changelog
 
-## 7.4.0-0.2.0 (upcoming)
+## 7.4.0-0.2.0 (2023-03-29)
 
-## 7.1.2-0.1.1 (2023-02-01)
+
+
+## Previous development
+
+### 7.1.2-0.1.1 (2023-02-01)
 
 * [EOS-10808] Clear extra cookies with same domain as session cookie
 
-## 7.1.2-0.1.0 (2022-07-21)
+### 7.1.2-0.1.0 (2022-07-21)
 
 * Use new versioning schema
 * Adapt repo to new CICD
@@ -21,7 +25,7 @@
 * Adapt repo to Stratio CICD flow
 * Use https://github.com/oauth2-proxy/oauth2-proxy/releases/tag/v7.1.2 as base
 
-## 6.1.1 (Built: December 9, 2020 | Pre-release)
+### Branched to branch-6.1 (2020-12-09)
 
 * Add tenant and groups to userinfo
 * Add SIS provider and JWT session support
