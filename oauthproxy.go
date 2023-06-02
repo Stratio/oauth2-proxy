@@ -724,8 +724,8 @@ func (p *OAuthProxy) UserInfo(rw http.ResponseWriter, req *http.Request) {
 		Groups            []string `json:"groups,omitempty"`
 		PreferredUsername string   `json:"preferredUsername,omitempty"`
 		Tenant            string   `json:"tenant,omitempty"`
-		Tenants            string   `json:"tenants,omitempty"`
 		Username          string   `json:"username,omitempty"`
+		Tenants           []string `json:"tenants,omitempty"`
 	}{
 		User:              session.User,
 		Email:             session.Email,
