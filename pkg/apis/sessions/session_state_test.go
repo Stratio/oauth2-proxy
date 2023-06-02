@@ -59,8 +59,9 @@ func TestString(t *testing.T) {
 				Email:             "email@email.email",
 				User:              "some.user",
 				PreferredUsername: "preferred.user",
+				Username:          "some.user",
 			},
-			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user}",
+			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user Username:some.user}",
 		},
 		{
 			name: "Full Session",
@@ -74,7 +75,7 @@ func TestString(t *testing.T) {
 				IDToken:           "id.token",
 				RefreshToken:      "refresh.token",
 			},
-			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user token:true id_token:true created:2000-01-01 00:00:00 +0000 UTC expires:2000-01-01 01:00:00 +0000 UTC refresh_token:true}",
+			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user Username:some.user token:true id_token:true created:2000-01-01 00:00:00 +0000 UTC expires:2000-01-01 01:00:00 +0000 UTC refresh_token:true}",
 		},
 		{
 			name: "With a CreatedAt",
@@ -92,9 +93,10 @@ func TestString(t *testing.T) {
 				Email:             "email@email.email",
 				User:              "some.user",
 				PreferredUsername: "preferred.user",
+				Username:          "some.user",
 				ExpiresOn:         &expires,
 			},
-			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user expires:2000-01-01 01:00:00 +0000 UTC}",
+			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user Username:some.user expires:2000-01-01 01:00:00 +0000 UTC}",
 		},
 		{
 			name: "With an AccessToken",
@@ -102,9 +104,10 @@ func TestString(t *testing.T) {
 				Email:             "email@email.email",
 				User:              "some.user",
 				PreferredUsername: "preferred.user",
+				Username:          "some.user",
 				AccessToken:       "access.token",
 			},
-			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user token:true}",
+			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user Username:some.user token:true}",
 		},
 		{
 			name: "With an IDToken",
@@ -112,9 +115,10 @@ func TestString(t *testing.T) {
 				Email:             "email@email.email",
 				User:              "some.user",
 				PreferredUsername: "preferred.user",
+				Username:          "some.user",
 				IDToken:           "id.token",
 			},
-			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user id_token:true}",
+			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user Username:some.user id_token:true}",
 		},
 		{
 			name: "With a RefreshToken",
@@ -122,9 +126,10 @@ func TestString(t *testing.T) {
 				Email:             "email@email.email",
 				User:              "some.user",
 				PreferredUsername: "preferred.user",
+				Username:          "some.user",
 				RefreshToken:      "refresh.token",
 			},
-			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user refresh_token:true}",
+			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user Username:some.user refresh_token:true}",
 		},
 	}
 

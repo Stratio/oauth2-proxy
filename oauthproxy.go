@@ -724,12 +724,16 @@ func (p *OAuthProxy) UserInfo(rw http.ResponseWriter, req *http.Request) {
 		Groups            []string `json:"groups,omitempty"`
 		PreferredUsername string   `json:"preferredUsername,omitempty"`
 		Tenant            string   `json:"tenant,omitempty"`
+		Tenants            string   `json:"tenants,omitempty"`
+		Username          string   `json:"username,omitempty"`
 	}{
 		User:              session.User,
 		Email:             session.Email,
 		Groups:            session.Groups,
 		PreferredUsername: session.PreferredUsername,
 		Tenant:            session.Tenant,
+		Username:          session.Username,
+		Tenants:           session.Tenants,
 	}
 
 	if err := json.NewEncoder(rw).Encode(userInfo); err != nil {
