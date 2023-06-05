@@ -78,7 +78,8 @@ func TestSISProviderRedeem(t *testing.T) {
 func TestSISProviderEnrichSession(t *testing.T) {
 	b := testSISBackend(map[string]string{
 		"/sso/oauth2.0/profile": `{"id":"admin","attributes":[{"uid":"admin"},{"tenant":"NONE"},
-{"roles":[]},{"groups":["admins","managers"]},{"cn":"admin"},{"mail":"admin@example.com"}]}`,
+{"roles":[]},{"groups":["admins","managers"]},{"username":"admin"},{"tenants":["NONE","NUNI"]},
+{"cn":"admin"},{"mail":"admin@example.com"}]}`,
 	})
 	defer b.Close()
 

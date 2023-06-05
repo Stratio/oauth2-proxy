@@ -87,7 +87,7 @@ func TestString(t *testing.T) {
 				Username:          "some.user",
 				CreatedAt:         &created,
 			},
-			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user created:2000-01-01 00:00:00 +0000 UTC}",
+			expected: "Session{email:email@email.email user:some.user PreferredUsername:preferred.user Username:some.user created:2000-01-01 00:00:00 +0000 UTC}",
 		},
 		{
 			name: "With an ExpiresOn",
