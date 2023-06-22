@@ -79,12 +79,12 @@ func NewSISProvider(p *ProviderData, opts options.SISOptions) *SISProvider {
 	}
 
 	if opts.SISRootURL != "" {
-		rootUrl, err := url.Parse(opts.SISRootURL)
+		rootURL, err := url.Parse(opts.SISRootURL)
 		if err != nil {
 			fmt.Printf("Error parsing SISRootURL=%v", opts.SISRootURL)
 			return nil
 		}
-		provider.Configure(rootUrl)
+		provider.Configure(rootURL)
 	}
 
 	return provider
@@ -248,6 +248,10 @@ func (p *SISProvider) EnrichSession(ctx context.Context, s *sessions.SessionStat
 				s.Tenant, err = attributes.GetIndex(i).Get("tenant").String()
 			case "groups":
 				s.Groups, err = attributes.GetIndex(i).Get("groups").StringArray()
+			case "username":
+				s.Username, err = attributes.GetIndex(i).Get("username").String()
+			case "tenants":
+				s.Tenants, err = attributes.GetIndex(i).Get("tenants").StringArray()
 			}
 			if err != nil {
 				fmt.Printf("Error unmarshalling %s: %v", k, err)
