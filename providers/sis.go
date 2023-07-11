@@ -53,6 +53,13 @@ var (
 		Path:   "/sso/oauth2.0/profile",
 	}
 
+	// Default Profile URL for SIS.
+	sisDefaultValidateURL = &url.URL{
+		Scheme: "https",
+		Host:   sisDefaultHost,
+		Path:   "/sso/oauth2.0/profile",
+	}
+
 	// Default Sign Out URL for SIS.
 	sisDefaultSignOutURL = &url.URL{
 		Scheme: "https",
@@ -117,7 +124,7 @@ func (p *SISProvider) Configure(rootURL *url.URL) {
 		}
 	}
 
-	if p.ValidateURL.String() == sisDefaultProfileURL.String() {
+	if p.ValidateURL.String() == sisDefaultValidateURL.String() {
 		p.ValidateURL = &url.URL{
 			Scheme: rootURL.Scheme,
 			Host:   rootURL.Host,
