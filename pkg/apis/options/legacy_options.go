@@ -705,7 +705,6 @@ func (l *LegacyProvider) convert() (Providers, error) {
 		ClearExtraCookieNames: l.ClearExtraCookieNames,
 	}
 
-	fmt.Println("Provider type = ", provider.Type)
 	switch provider.Type {
 	case "github":
 		provider.GitHubConfig = GitHubOptions{
