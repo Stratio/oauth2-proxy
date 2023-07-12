@@ -34,7 +34,6 @@ type Provider interface {
 }
 
 func NewProvider(providerConfig options.Provider) (Provider, error) {
-	fmt.Println("New provider ", providerConfig)
 	providerData, err := newProviderDataFromConfig(providerConfig)
 	if err != nil {
 		return nil, fmt.Errorf("could not create provider data: %v", err)
