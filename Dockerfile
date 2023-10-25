@@ -5,7 +5,7 @@ ARG RUNTIME_IMAGE=docker.io/library/alpine:3.18
 #  cache sharing of the go mod download step.
 # Go cross compilation is also faster than emulation the go compilation across
 #  multiple platforms.
-FROM --platform=${BUILDPLATFORM} library/golang:1.19-buster AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.19-buster AS builder
 
 # Copy sources
 WORKDIR $GOPATH/src/github.com/oauth2-proxy/oauth2-proxy
