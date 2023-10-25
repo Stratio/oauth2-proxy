@@ -1,13 +1,14 @@
 package jwt
 
 import (
+	"context"
 	"crypto/rsa"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/apis/options"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/apis/sessions"
 	pkgcookies "github.com/oauth2-proxy/oauth2-proxy/v7/pkg/cookies"
@@ -53,7 +54,7 @@ func parseJWTKey(o options.JWTStoreOptions) (*rsa.PrivateKey, error) {
 	// o.JWTKeyFile != "":
 	default:
 		// The JWT key is in the filesystem
-		keyData, err := ioutil.ReadFile(o.JWTKeyFile)
+		keyData, err := os.ReadFile(o.JWTKeyFile)
 		if err != nil {
 			return nil, err
 		}
@@ -88,27 +89,32 @@ func (s *SessionStore) Save(rw http.ResponseWriter, req *http.Request, ss *sessi
 
 // Claims are the jwt claims structure
 type Claims struct {
-	jwt.StandardClaims
-	UID    string   `json:"uid"`
-	CN     string   `json:"cn"`
-	Mail   string   `json:"mail"`
-	Tenant string   `json:"tenant"`
-	Groups []string `json:"groups"`
+	jwt.RegisteredClaims
+	UID      string   `json:"uid"`
+	CN       string   `json:"cn"`
+	Username string   `json:"username"`
+	Mail     string   `json:"mail"`
+	Tenant   string   `json:"tenant"`
+	Groups   []string `json:"groups"`
+	Tenants  []string `json:"tenants"`
 }
 
 func (s *SessionStore) tokenFromSession(ss *sessions.SessionState) (string, error) {
 	claims := Claims{
-		StandardClaims: jwt.StandardClaims{
-			NotBefore: ss.CreatedAt.Unix(),
-			ExpiresAt: ss.ExpiresOn.Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			NotBefore: jwt.NewNumericDate(*ss.CreatedAt),
+			ExpiresAt: jwt.NewNumericDate(*ss.ExpiresOn),
 		},
-		UID:    ss.User,
-		CN:     ss.PreferredUsername,
-		Mail:   ss.Email,
-		Tenant: ss.Tenant,
-		Groups: ss.Groups,
+		UID:      ss.User,
+		CN:       ss.PreferredUsername,
+		Username: ss.Username,
+		Mail:     ss.Email,
+		Tenant:   ss.Tenant,
+		Groups:   ss.Groups,
+		Tenants:  ss.Tenants,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	token.Header["kid"] = "secret"
 	tokenString, err := token.SignedString(s.JWTKey)
 	if err != nil {
 		return "", err
@@ -147,16 +153,16 @@ func (s *SessionStore) sessionFromToken(tokenString string) (*sessions.SessionSt
 	})
 
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		nbf := time.Unix(claims.NotBefore, 0)
-		exp := time.Unix(claims.ExpiresAt, 0)
 		return &sessions.SessionState{
-			CreatedAt:         &nbf,
-			ExpiresOn:         &exp,
+			CreatedAt:         &claims.NotBefore.Time,
+			ExpiresOn:         &claims.ExpiresAt.Time,
 			User:              claims.UID,
 			PreferredUsername: claims.CN,
+			Username:          claims.Username,
 			Email:             claims.Mail,
 			Tenant:            claims.Tenant,
 			Groups:            claims.Groups,
+			Tenants:           claims.Tenants,
 		}, nil
 	}
 	return nil, err
@@ -171,5 +177,11 @@ func (s *SessionStore) Clear(rw http.ResponseWriter, req *http.Request) error {
 	}
 	clearCookie := s.makeCookie(req, c.Name, "", time.Hour*-1, time.Now())
 	http.SetCookie(rw, clearCookie)
+	return nil
+}
+
+// VerifyConnection always return no-error, as there's no connection
+// in this store
+func (s *SessionStore) VerifyConnection(_ context.Context) error {
 	return nil
 }
