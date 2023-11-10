@@ -5,7 +5,7 @@ ARG RUNTIME_IMAGE=alpine:3.18
 #  cache sharing of the go mod download step.
 # Go cross compilation is also faster than emulation the go compilation across
 #  multiple platforms.
-FROM --platform=${BUILDPLATFORM} golang:1.19-buster AS builder
+FROM golang:1.19-buster AS builder
 
 # Copy sources
 WORKDIR $GOPATH/src/github.com/oauth2-proxy/oauth2-proxy
@@ -21,7 +21,7 @@ COPY . .
 #  sources have changed.
 ARG VERSION
 ARG TARGETPLATFORM
-ARG BUILDPLATFORM="linux/amd64"
+ARG BUILDPLATFORM
 
 # Build binary and make sure there is at least an empty key file.
 #  This is useful for GCP App Engine custom runtime builds, because
