@@ -12,6 +12,6 @@ hose {
 
     DEV = { config ->
         doUT(conf: config, parameters: "GOCACHE=/tmp")
-        doDocker(conf: config, image: 'oauth2-proxy')
+        doDocker(conf: config, image: 'oauth2-proxy', platform: 'linux/amd64')
     }
 }
