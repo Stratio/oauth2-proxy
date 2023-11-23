@@ -1,10 +1,12 @@
 # Changelog
 
-## 7.4.0-0.2.0 (2023-07-12)
+### 7.5.1-0.3.0 (upcoming)
 
-
+* [EOS-12032] Use jwt session store
 
 ## Previous development
+
+### 7.4.0-0.2.0 (2023-07-12)
 
 ### 7.1.2-0.1.1 (2023-02-01)
 
