@@ -8,6 +8,7 @@ hose {
     ANCHORE_POLICY = "production"
     VERSIONING_TYPE = 'stratioVersion-3-3'
     UPSTREAM_VERSION = '7.5.1'
+    DEPLOYONPRS = true
     GRYPE_TEST = false
 
     DEV = { config ->

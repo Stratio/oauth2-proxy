@@ -2,6 +2,10 @@
 
 ### 7.5.1-0.3.0 (2023-11-24)
 
+* [PLT-1263] Add a cookie-csrf-per-request-limit attribute
+
+### 7.5.1-0.3.0 (2023-11-24)
+
 * [EOS-12032] Use jwt session store
 
 ## Previous development
@@ -31,4 +35,4 @@
 
 * Add tenant and groups to userinfo
 * Add SIS provider and JWT session support
-* Adapt repo to Stratio CICD flow 
+* Adapt repo to Stratio CICD flow
