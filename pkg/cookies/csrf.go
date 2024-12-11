@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/apis/options"
@@ -146,6 +148,43 @@ func (c *csrf) SetCookie(rw http.ResponseWriter, req *http.Request) (*http.Cooki
 	return cookie, nil
 }
 
+func ClearExtraCsrfCookies(opts *options.Cookie, rw http.ResponseWriter, req *http.Request) {
+	if !opts.CSRFPerRequest || opts.CSRFPerRequestLimit <= 0 {
+		return
+	}
+
+	cookies := req.Cookies()
+	existingCsrfCookies := []*http.Cookie{}
+	startsWith := fmt.Sprintf("%v_", opts.Name)
+	for _, cookie := range cookies {
+		if strings.HasPrefix(cookie.Name, startsWith) && strings.Contains(cookie.Name, "_csrf_") {
+			existingCsrfCookies = append(existingCsrfCookies, cookie)
+		}
+	}
+
+	if len(existingCsrfCookies) <= opts.CSRFPerRequestLimit {
+		return
+	}
+
+	decodedCookies := []*csrf{}
+	for _, cookie := range existingCsrfCookies {
+		decodedCookie, err := decodeCSRFCookie(cookie, opts)
+		if err != nil {
+			continue
+		}
+		decodedCookies = append(decodedCookies, decodedCookie)
+	}
+
+	sort.Slice(decodedCookies, func(i, j int) bool {
+		return decodedCookies[i].time.Now().Before(decodedCookies[j].time.Now())
+	})
+
+	numberToDelete := len(decodedCookies) - opts.CSRFPerRequestLimit
+	for i := 0; i < numberToDelete; i++ {
+		decodedCookies[i].ClearCookie(rw, req)
+	}
+}
+
 // ClearCookie removes the CSRF cookie
 func (c *csrf) ClearCookie(rw http.ResponseWriter, req *http.Request) {
 	http.SetCookie(rw, MakeCookieFromOptions(
@@ -177,7 +216,7 @@ func (c *csrf) encodeCookie() (string, error) {
 // decodeCSRFCookie validates the signature then decrypts and decodes a CSRF
 // cookie into a CSRF struct
 func decodeCSRFCookie(cookie *http.Cookie, opts *options.Cookie) (*csrf, error) {
-	val, _, ok := encryption.Validate(cookie, opts.Secret, opts.Expire)
+	val, t, ok := encryption.Validate(cookie, opts.Secret, opts.Expire)
 	if !ok {
 		return nil, errors.New("CSRF cookie failed validation")
 	}
@@ -188,7 +227,9 @@ func decodeCSRFCookie(cookie *http.Cookie, opts *options.Cookie) (*csrf, error) 
 	}
 
 	// Valid cookie, Unmarshal the CSRF
-	csrf := &csrf{cookieOpts: opts}
+	clock := clock.Clock{}
+	clock.Set(t)
+	csrf := &csrf{cookieOpts: opts, time: clock}
 	err = msgpack.Unmarshal(decrypted, csrf)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling data to CSRF: %v", err)
