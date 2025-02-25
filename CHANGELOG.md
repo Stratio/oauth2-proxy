@@ -1,5 +1,9 @@
 # Changelog
 
+### 7.5.1-0.3.1 (Upcoming)
+
+* [PLT-1606] Increased CSRFCookie TTL
+
 ### 7.5.1-0.3.0 (2023-11-24)
 
 * [EOS-12032] Use jwt session store
