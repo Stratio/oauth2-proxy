@@ -2,6 +2,7 @@
 
 ### 7.7.1-0.4.0 (upcoming)
 
+* [PLT-1606] Increased CSRFCookie TTL
 * [PLT-795] Bump oauth2 proxy upstream version to 7.7.1
 
 ### 7.5.1-0.3.0 (2023-11-24)
