@@ -34,7 +34,7 @@ func cookieFlagSet() *pflag.FlagSet {
 	flagSet.Bool("cookie-httponly", true, "set HttpOnly cookie flag")
 	flagSet.String("cookie-samesite", "", "set SameSite cookie attribute (ie: \"lax\", \"strict\", \"none\", or \"\"). ")
 	flagSet.Bool("cookie-csrf-per-request", false, "When this property is set to true, then the CSRF cookie name is built based on the state and varies per request. If property is set to false, then CSRF cookie has the same name for all requests.")
-	flagSet.Duration("cookie-csrf-expire", time.Duration(15)*time.Minute, "expire timeframe for CSRF cookie")
+	flagSet.Duration("cookie-csrf-expire", time.Duration(6)*time.Hour, "expire timeframe for CSRF cookie")
 	return flagSet
 }
 
@@ -51,6 +51,6 @@ func cookieDefaults() Cookie {
 		HTTPOnly:       true,
 		SameSite:       "",
 		CSRFPerRequest: false,
-		CSRFExpire:     time.Duration(15) * time.Minute,
+		CSRFExpire:     time.Duration(6) * time.Hour,
 	}
 }
