@@ -173,7 +173,7 @@ func (s *SessionStore) sessionFromToken(tokenString string) (*sessions.SessionSt
 func (s *SessionStore) Clear(rw http.ResponseWriter, req *http.Request) error {
 	c, err := req.Cookie(s.Cookie.Name)
 	if err != nil {
-		return err
+		return nil
 	}
 	clearCookie := s.makeCookie(req, c.Name, "", time.Hour*-1, time.Now())
 	http.SetCookie(rw, clearCookie)
