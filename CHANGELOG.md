@@ -35,4 +35,3 @@
 
 * Add tenant and groups to userinfo
 * Add SIS provider and JWT session support
-* Adapt repo to Stratio CICD flow 
