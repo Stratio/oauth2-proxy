@@ -1,6 +1,6 @@
 # Changelog
 
-### 7.5.1-0.3.1 (upcoming)
+### 7.5.1-0.3.1 (2025-06-30)
 
 * [PLT-2291] Fix: Handle missing JWT cookie on oauth2-proxy logout
 
