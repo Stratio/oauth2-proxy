@@ -1,5 +1,9 @@
 # Changelog
 
+### 7.5.1-0.3.1 (upcoming)
+
+* [PLT-2291] Fix: Handle missing JWT cookie on oauth2-proxy logout
+
 ### 7.5.1-0.3.0 (2023-11-24)
 
 * [EOS-12032] Use jwt session store
