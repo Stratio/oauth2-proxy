@@ -6,6 +6,10 @@
 
 ### 7.5.1-0.3.0 (2023-11-24)
 
+* [PLT-1263] Add a cookie-csrf-per-request-limit attribute
+
+### 7.5.1-0.3.0 (2023-11-24)
+
 * [EOS-12032] Use jwt session store
 
 ## Previous development
