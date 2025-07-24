@@ -26,7 +26,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
 	github.com/pierrec/lz4/v4 v4.1.21
-	github.com/prometheus/client_golang v1.20.4
+	github.com/prometheus/client_golang v1.20.5
 	github.com/redis/go-redis/v9 v9.6.1
 	github.com/spf13/cast v1.7.0
 	github.com/spf13/pflag v1.0.5
