@@ -5,7 +5,7 @@ ARG RUNTIME_IMAGE=distroless/static:nonroot
 #  cache sharing of the go mod download step.
 # Go cross compilation is also faster than emulation the go compilation across
 #  multiple platforms.
-FROM golang:1.22-bookworm AS builder
+FROM golang:1.23 AS builder
 
 # Copy sources
 WORKDIR $GOPATH/src/github.com/oauth2-proxy/oauth2-proxy
