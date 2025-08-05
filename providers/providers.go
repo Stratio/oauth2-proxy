@@ -29,6 +29,8 @@ type Provider interface {
 	ValidateSession(ctx context.Context, s *sessions.SessionState) bool
 	RefreshSession(ctx context.Context, s *sessions.SessionState) (bool, error)
 	CreateSessionFromToken(ctx context.Context, token string) (*sessions.SessionState, error)
+	// Stratio SingOutUrl
+	GetSignOutURL(redirectURI string) string
 }
 
 func NewProvider(providerConfig options.Provider) (Provider, error) {
@@ -71,6 +73,8 @@ func NewProvider(providerConfig options.Provider) (Provider, error) {
 		return NewOIDCProvider(providerData, providerConfig.OIDCConfig), nil
 	case options.SourceHutProvider:
 		return NewSourceHutProvider(providerData), nil
+	case options.SISProvider:
+		return NewSISProvider(providerData, providerConfig.SISConfig), nil
 	default:
 		return nil, fmt.Errorf("unknown provider type %q", providerConfig.Type)
 	}
@@ -84,11 +88,13 @@ func newProviderDataFromConfig(providerConfig options.Provider) (*ProviderData, 
 		ClientSecretFile:        providerConfig.ClientSecretFile,
 		AuthRequestResponseMode: providerConfig.AuthRequestResponseMode,
 	}
+	fmt.Println("Provider data = ", p)
 
 	needsVerifier, err := providerRequiresOIDCProviderVerifier(providerConfig.Type)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("Needs verifier? ", needsVerifier)
 
 	if needsVerifier {
 		pv, err := internaloidc.NewProviderVerifier(context.TODO(), internaloidc.ProviderVerifierOptions{
@@ -193,6 +199,8 @@ func providerRequiresOIDCProviderVerifier(providerType options.ProviderType) (bo
 	case options.OIDCProvider, options.ADFSProvider, options.AzureProvider, options.CidaasProvider,
 		options.GitLabProvider, options.KeycloakOIDCProvider, options.MicrosoftEntraIDProvider:
 		return true, nil
+	case options.SISProvider:
+		return false, nil
 	default:
 		return false, fmt.Errorf("unknown provider type: %s", providerType)
 	}

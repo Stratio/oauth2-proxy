@@ -28,7 +28,9 @@ type SessionState struct {
 	User              string   `msgpack:"u,omitempty"`
 	Groups            []string `msgpack:"g,omitempty"`
 	PreferredUsername string   `msgpack:"pu,omitempty"`
-
+	Tenant            string   `msgpack:"t,omitempty"`
+	Username          string   `msgpack:"un,omitempty"`
+	Tenants           []string `msgpack:"tt,omitempty"`
 	// Internal helpers, not serialized
 	Clock clock.Clock `msgpack:"-"`
 	Lock  Lock        `msgpack:"-"`
@@ -101,7 +103,10 @@ func (s *SessionState) Age() time.Duration {
 
 // String constructs a summary of the session state
 func (s *SessionState) String() string {
-	o := fmt.Sprintf("Session{email:%s user:%s PreferredUsername:%s", s.Email, s.User, s.PreferredUsername)
+	o := fmt.Sprintf("Session{email:%s user:%s PreferredUsername:%s Username:%s", s.Email, s.User, s.PreferredUsername, s.Username)
+	if s.Tenant != "" {
+		o += fmt.Sprintf(" tenant:%s", s.Tenant)
+	}
 	if s.AccessToken != "" {
 		o += " token:true"
 	}
@@ -119,6 +124,9 @@ func (s *SessionState) String() string {
 	}
 	if len(s.Groups) > 0 {
 		o += fmt.Sprintf(" groups:%v", s.Groups)
+	}
+	if len(s.Tenants) > 0 {
+		o += fmt.Sprintf(" tenants:%v", s.Tenants)
 	}
 	return o + "}"
 }
@@ -148,6 +156,12 @@ func (s *SessionState) GetClaim(claim string) []string {
 		return groups
 	case "preferred_username":
 		return []string{s.PreferredUsername}
+	case "username":
+		return []string{s.Username}
+	case "tenants":
+		tenants := make([]string, len(s.Tenants))
+		copy(tenants, s.Tenants)
+		return tenants
 	default:
 		return []string{}
 	}

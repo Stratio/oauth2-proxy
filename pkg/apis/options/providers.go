@@ -51,6 +51,8 @@ type Provider struct {
 	OIDCConfig OIDCOptions `json:"oidcConfig,omitempty"`
 	// LoginGovConfig holds all configurations for LoginGov provider.
 	LoginGovConfig LoginGovOptions `json:"loginGovConfig,omitempty"`
+	// SISConfig holds all configurations for SIS provider.
+	SISConfig SISOptions `json:"sisConfig,omitempty"`
 
 	// ID should be a unique identifier for the provider.
 	// This value is required for all providers.
@@ -153,6 +155,9 @@ const (
 
 	// SourceHutProvider is the provider type for SourceHut
 	SourceHutProvider ProviderType = "sourcehut"
+
+	// SISProvider is the provider type for SIS
+	SISProvider ProviderType = "sis"
 )
 
 type KeycloakOptions struct {
@@ -281,6 +286,13 @@ type LoginGovOptions struct {
 	JWTKeyFile string `json:"jwtKeyFile,omitempty"`
 	// PubJWKURL is the JWK pubkey access endpoint
 	PubJWKURL string `json:"pubjwkURL,omitempty"`
+}
+
+type SISOptions struct {
+	// SISRootURL is the OpenID Connect SISRoot URL
+	SISRootURL string `flag:"sis-root-url" cfg:"sign_out_url"`
+	// ClearExtraCookieNames sets cookie names to clear after sign out
+	ClearExtraCookieNames []string `flag:"clear-extra-cookie-names" cfg:"clear_extra_cookie_names"`
 }
 
 func providerDefaults() Providers {
