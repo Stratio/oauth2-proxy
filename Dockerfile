@@ -2,9 +2,9 @@
 # the FROM statements and overall Dockerfile
 #
 # Argument for setting the build image
-ARG BUILD_IMAGE=distroless/static:nonroot
+ARG BUILD_IMAGE=placeholder
 # Argument for setting the runtime image
-ARG RUNTIME_IMAGE=golang:1.24-bookworm
+ARG RUNTIME_IMAGE=placeholder
 # Argument for setting the oauth2-proxy build version
 ARG VERSION
 
@@ -12,7 +12,7 @@ ARG VERSION
 #  cache sharing of the go mod download step.
 # Go cross compilation is also faster than emulation the go compilation across
 #  multiple platforms.
-FROM --platform=${BUILDPLATFORM} ${BUILD_IMAGE} AS builder
+FROM ${BUILD_IMAGE} AS builder
 
 # Copy sources
 WORKDIR $GOPATH/src/github.com/oauth2-proxy/oauth2-proxy

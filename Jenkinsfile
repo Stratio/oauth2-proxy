@@ -16,6 +16,8 @@ hose {
             conf: config,
             image: 'oauth2-proxy',
             buildargs: [
+                "BUILD_IMAGE=distroless/static:nonroot",
+                "RUNTIME_IMAGE=golang:1.24-bookworm",
                 "BUILDPLATFORM=linux/amd64",
             ]
         )
