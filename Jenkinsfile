@@ -2,7 +2,7 @@
 
 hose {
     EMAIL = 'eos@stratio.com'
-    BUILDTOOL_IMAGE = 'golang:1.22'
+    BUILDTOOL_IMAGE = 'golang:1.24'
     BUILDTOOL = 'make'
     DEVTIMEOUT = 30
     ANCHORE_POLICY = "production"
