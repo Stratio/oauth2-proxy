@@ -21,6 +21,9 @@ import (
 // are of the correct format
 func Validate(o *options.Options) error {
 	msgs := validateCookie(o.Cookie)
+	if o.Session.Type != "jwt" {
+		msgs = append(msgs, validateCookieSecret(o.Cookie.Secret)...)
+	}
 	msgs = append(msgs, validateSessionCookieMinimal(o)...)
 	msgs = append(msgs, validateRedisSessionStore(o)...)
 	msgs = append(msgs, prefixValues("injectRequestHeaders: ", validateHeaders(o.InjectRequestHeaders)...)...)
