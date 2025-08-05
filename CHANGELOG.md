@@ -1,10 +1,10 @@
-# Vx.x.x (Pre-release)
+# Changelog
 
-## Release Highlights
+### 7.13.0-0.4.0 (upcoming)
 
-## Important Notes
+* [PLT-795] Bump oauth2 proxy upstream version to 7.13.0
 
-## Breaking Changes
+### 7.5.1-0.3.0 (2023-11-24)
 
 ## Changes since v7.13.0
 
@@ -41,20 +41,30 @@ Furthermore, we now use the access_token for validating refreshed sessions in OI
 
 # V7.12.0
 
-## Release Highlights
+### 7.4.0-0.2.0 (2023-07-12)
 
-- 🕵️‍♀️ Vulnerabilities have been addressed
-  - [CVE-2025-47907](https://pkg.go.dev/vuln/GO-2025-3849)
-- 🦸 Support for Cidaas IDP
-- 🐛 Squashed some bugs
+### 7.1.2-0.1.1 (2023-02-01)
 
+* [EOS-10808] Clear extra cookies with same domain as session cookie
 
-## Important Notes
+### 7.1.2-0.1.0 (2022-07-21)
 
-## Breaking Changes
+* Use new versioning schema
+* Adapt repo to new CICD
+* Bump alpine version to fix vulnerabilities
+* [EOS-5416] Make sis path configurable
+* [EOS-5112] Clear extra cookies whenever session cookie is removed
+* [EOS-5112] Use extra cookies info from request
+* Clear extra cookies on sign out
+* Redirect to provider specific URL on sign out
+* Add jwt session store
+* Add sis provider
+* Adapt repo to Stratio CICD flow
+* Use https://github.com/oauth2-proxy/oauth2-proxy/releases/tag/v7.1.2 as base
 
-## Changes since v7.11.0
+### Branched to branch-6.1 (2020-12-09)
 
+<<<<<<< HEAD
 - [#2273](https://github.com/oauth2-proxy/oauth2-proxy/pull/2273) feat: add Cidaas provider (@Bibob7, @Teko012)
 - [#3166](https://github.com/oauth2-proxy/oauth2-proxy/pull/3166) chore(dep): upgrade to latest golang 1.24.6 (@tuunit)
 - [#3156](https://github.com/oauth2-proxy/oauth2-proxy/pull/3156) feat: allow disable-keep-alives configuration for upstream (@jet-go)
@@ -1389,3 +1399,8 @@ v2.2 as released by Bitly.
   - Repository forked on 27/11/18
     - README updated to include note that this repository is forked
     - CHANGLOG created to track changes to repository from original fork
+=======
+* Add tenant and groups to userinfo
+* Add SIS provider and JWT session support
+* Adapt repo to Stratio CICD flow
+>>>>>>> cb2b9051 (Stratio CICD integration)
