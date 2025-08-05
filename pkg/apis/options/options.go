@@ -162,6 +162,12 @@ func NewFlagSet() *pflag.FlagSet {
 	flagSet.String("signature-key", "", "GAP-Signature request signature key (algorithm:secretkey)")
 	flagSet.Bool("gcp-healthchecks", false, "Enable GCP/GKE healthcheck endpoints")
 
+	flagSet.String("sis-root-url", "", "Stratio SIS root URL")
+	flagSet.String("sign-out-url", "", "Sign out endpoint")
+	flagSet.StringSlice("clear-extra-cookie-names", []string{}, "Clear extra cookies after logout")
+	flagSet.String("jwt-session-key", "", "private key in PEM format used to sign session JWT, so that you can say something like --jwt-session-key=\"${OAUTH2_PROXY_JWT_SESSION_KEY}\"")
+	flagSet.String("jwt-session-key-file", "", "path to the private key file in PEM format used to sign the session JWT so that you can say something like --jwt-session-key-file=/etc/ssl/private/jwt_session_signing_key.pem")
+
 	flagSet.AddFlagSet(cookieFlagSet())
 	flagSet.AddFlagSet(loggingFlagSet())
 	flagSet.AddFlagSet(templatesFlagSet())

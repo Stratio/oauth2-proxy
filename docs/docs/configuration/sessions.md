@@ -12,6 +12,7 @@ data in one of the available session storage backends.
 At present the available backends are (as passed to `--session-store-type`):
 - [cookie](#cookie-storage) (default)
 - [redis](#redis-storage)
+- [jwt](#jwt-storage)
 
 ### Cookie Storage
 
@@ -97,3 +98,17 @@ Note that flags `--redis-use-sentinel=true` and `--redis-use-cluster=true` are m
 Note, if Redis timeout option is set to non-zero, the `--redis-connection-idle-timeout` 
 must be less than [Redis timeout option](https://redis.io/docs/reference/clients/#client-timeouts). For example: if either redis.conf includes 
 `timeout 15` or using `CONFIG SET timeout 15` the `--redis-connection-idle-timeout` must be at least `--redis-connection-idle-timeout=14`
+
+### JWT Storage
+
+The JWT Storage backend stores sessions as signed JWTs.
+
+All session information is stored in token claims and send back to the browser as a cookie,
+so it is transferred with each request.
+
+Only basic information is persisted, no OIDC tokens or access tokens are created as claims in order to limit the size of the token itself.
+
+#### Usage
+
+When using the jwt store, specify `--session-store-type=jwt` as well as the signing key, via
+`--jwt-session-key=\"${OAUTH2_PROXY_JWT_SESSION_KEY}\"` or `--jwt-session-key-file=/etc/ssl/private/jwt_session_signing_key.pem`.
