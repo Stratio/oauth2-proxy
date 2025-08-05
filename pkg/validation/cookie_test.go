@@ -322,7 +322,7 @@ func TestValidateCookie(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			errStrings := validateCookieSecret(tc.cookie.Secret)
+			errStrings := validateCookieSecret(tc.cookie.Secret, tc.cookie.SecretFile)
 			errStrings = append(errStrings, validateCookie(tc.cookie)...)
 			g := NewWithT(t)
 

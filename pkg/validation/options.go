@@ -22,7 +22,7 @@ import (
 func Validate(o *options.Options) error {
 	msgs := validateCookie(o.Cookie)
 	if o.Session.Type != "jwt" {
-		msgs = append(msgs, validateCookieSecret(o.Cookie.Secret)...)
+		msgs = append(msgs, validateCookieSecret(o.Cookie.Secret, o.Cookie.SecretFile)...)
 	}
 	msgs = append(msgs, validateSessionCookieMinimal(o)...)
 	msgs = append(msgs, validateRedisSessionStore(o)...)
