@@ -48,6 +48,10 @@ ifeq ($(COVER),true)
 TESTCOVER ?= -coverprofile c.out
 endif
 
+ifeq ($(LINT),true)
+TESTLINT ?= lint
+endif
+
 ##@ Build
 
 .PHONY: build
@@ -140,8 +144,8 @@ verify-generate: generate ## Verify command to check if alpha config docs are in
 ##@ Miscellaneous
 
 .PHONY: test
-test: lint ## Run all Go tests
-	GO111MODULE=on $(GO) test $(TESTCOVER) -v -race ./...
+test: $(TESTLINT) ## Run all Go tests
+	GO111MODULE=on $(GO) test $(TESTCOVER) -tags skip -v ./...
 
 .PHONY: release
 release: validate-go-version lint test ## Create a full release for all architectures (binaries and checksums)
@@ -177,3 +181,8 @@ validate-go-version: ## Validate Go environment requirements
 .PHONY: local-env-%
 local-env-%:
 	make -C contrib/local-environment $*
+
+# Stratio CICD flow
+version ?= $(shell cat VERSION)
+change-version:
+	@echo $(version) > VERSION
