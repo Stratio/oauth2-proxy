@@ -551,7 +551,7 @@ func (p *OAuthProxy) ClearExtraCookies(rw http.ResponseWriter, req *http.Request
 				continue
 			}
 			logger.Printf("Extra cookie %s found in request: %#v", name, c)
-			http.SetCookie(rw, cookies.MakeCookieFromOptions(req, c.Name, "", p.CookieOptions, time.Hour*-1, time.Now()))
+			http.SetCookie(rw, cookies.MakeCookieFromOptions(req, c.Name, "", p.CookieOptions, time.Hour*-1))
 		}
 	}
 }

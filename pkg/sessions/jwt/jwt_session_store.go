@@ -81,7 +81,7 @@ func (s *SessionStore) Save(rw http.ResponseWriter, req *http.Request, ss *sessi
 	}
 
 	// create and set cookie
-	c := s.makeCookie(req, s.Cookie.Name, token, s.Cookie.Expire, *ss.CreatedAt)
+	c := s.makeCookie(req, s.Cookie.Name, token, s.Cookie.Expire)
 	http.SetCookie(rw, c)
 
 	return nil
@@ -123,14 +123,13 @@ func (s *SessionStore) tokenFromSession(ss *sessions.SessionState) (string, erro
 	return tokenString, nil
 }
 
-func (s *SessionStore) makeCookie(req *http.Request, name string, value string, expiration time.Duration, now time.Time) *http.Cookie {
+func (s *SessionStore) makeCookie(req *http.Request, name string, value string, expiration time.Duration) *http.Cookie {
 	return pkgcookies.MakeCookieFromOptions(
 		req,
 		name,
 		value,
 		s.Cookie,
 		expiration,
-		now,
 	)
 }
 
@@ -178,7 +177,7 @@ func (s *SessionStore) Clear(rw http.ResponseWriter, req *http.Request) error {
 	if err != nil {
 		return nil
 	}
-	clearCookie := s.makeCookie(req, c.Name, "", time.Hour*-1, time.Now())
+	clearCookie := s.makeCookie(req, c.Name, "", time.Hour*-1)
 	http.SetCookie(rw, clearCookie)
 	return nil
 }
