@@ -22,6 +22,7 @@ import (
 // Interfaces have to be wrapped in closures otherwise nil pointers are thrown.
 type testInput struct {
 	cookieOpts            *options.Cookie
+	sessionOpts           *options.SessionOptions
 	ss                    sessionStoreFunc
 	session               *sessionsapi.SessionState
 	request               *http.Request
@@ -88,6 +89,7 @@ func RunSessionStoreTests(newSS NewSessionStoreFunc, persistentFastForward Persi
 
 			input = testInput{
 				cookieOpts:            cookieOpts,
+				sessionOpts:           opts,
 				ss:                    getSessionStore,
 				session:               session,
 				request:               request,
@@ -189,7 +191,7 @@ func CheckCookieOptions(in *testInput) {
 
 		It("have a signature timestamp matching session.CreatedAt", func() {
 			for _, cookie := range cookies {
-				if cookie.Value != "" {
+				if cookie.Value != "" && in.sessionOpts.Type != "jwt" {
 					parts := strings.Split(cookie.Value, "|")
 					Expect(parts).To(HaveLen(3))
 					Expect(parts[1]).To(Equal(strconv.Itoa(int(in.session.CreatedAt.Unix()))))
@@ -511,11 +513,15 @@ func LoadSessionTests(in *testInput) {
 		s.CreatedAt = nil
 		s.ExpiresOn = nil
 		s.Lock = &sessionsapi.NoOpLock{}
+		if in.sessionOpts.Type == "jwt" {
+			s.AccessToken = ""
+			s.IDToken = ""
+			s.RefreshToken = ""
+		}
 		Expect(l).To(Equal(s))
 
 		// Compare time.Time separately
-		Expect(loadedSession.CreatedAt.Equal(*in.session.CreatedAt)).To(BeTrue())
-		Expect(loadedSession.ExpiresOn.Equal(*in.session.ExpiresOn)).To(BeTrue())
-
+		Expect(loadedSession.CreatedAt.Unix()).To(Equal(in.session.CreatedAt.Unix()))
+		Expect(loadedSession.ExpiresOn.Unix()).To(Equal(in.session.ExpiresOn.Unix()))
 	})
 }

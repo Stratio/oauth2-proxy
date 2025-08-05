@@ -403,3 +403,30 @@ Available variables for standard logging:
 | Timestamp | 2015/03/19 17:20:19               | The date and time of the logging event.            |
 | File      | main.go:40                        | The file and line number of the logging statement. |
 | Message   | HTTP: listening on 127.0.0.1:4180 | The details of the log statement.                  |
+
+## Stratio custom features
+
+### Stratio additional Options
+
+| Flag / Config Field                                                                 | Type           | Description                                                                                                                                                                                                                                                                                                                                                                                                   | Default |
+| ----------------------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| flag: `--clear-extra-cookie-names`<br/>toml: `clear_extra_cookie_names`             | string         | extra cookie names to clear when signing out                                                                                                                                                                                                                                                                                                                                                                  |         |
+| flag: `--jwt-session-key`<br/>toml: `jwt_session_key`                               | string         | private key in PEM format used to sign session JWT, so that you can say something like `--jwt-session-key="${OAUTH2_PROXY_JWT_SESSION_KEY}"`                                                                                                                                                                                                                                                                  |         |
+| flag: `--jwt-session-key-file`<br/>toml: `jwt_session_key_file`                     | string         | path to the private key file in PEM format used to sign the session JWT so that you can say something like `--jwt-session-key-file=/etc/ssl/private/jwt_session_signing_key.pem`                                                                                                                                                                                                                              |         |
+| flag: `--session-store-type`<br/>toml: `session_store_type`                         | string         | [Session data storage backend](sessions.md); redis, cookie or jwt                                                                                                                                                                                                                                                                                                                                             | cookie  |
+| flag: `--sign-out-url`<br/>toml: `sign_out_url`                                     | bool           | Sign out endpoint                                                                                                                                                                                                                                                                                                                                                                                             |         |
+| flag: `--sis-root-url`<br/>toml: `sis_root_url`                                     | string         | Stratio SIS root URL                                                                                                                                                                                                                                                                                                                                                                                          | true    |
+
+### Using and testing the SIS provider
+
+To test the SIS provider with JWT backend, a few things are needed before we launch the proxy.
+1. Register a new app in SIS
+Send a request like the one in the example below to the sis-api component:
+`curl -X PUT --cert cert.pem --key cert.key -H "Content-Type: application/json" -d '{"name": "local","serviceId": "http://127.0.0.1:4180/oauth2/callback","clientSecret": "local"}' https://<sis_api_url>:<sis_api_port>/registry/services/local`
+2. Grab SIS CA file and save it to your local filesystem
+3. Generate a new JWT signing key:
+`openssl genrsa -out jwt-key 2048`
+4. Launch `oauth2-proxy` with the following flags:
+`oauth2-proxy --provider=sis --client-id=local --client-secret=local --email-domain="*"  --redirect-url=http://127.0.0.1:4180 --provider-ca-file=sis-ca.crt --cookie-secure=false --sis-root-url=https://<sis_root_url>:<sis_root_port>/<sis_root_path> --session-store-type=jwt --jwt-session-key-file=jwt-key`
+This will launch a new proxy using the sis provider and jwt session storage.
+5. Point your browser to http://127.0.0.1:4180/oauth2/start?rd=/oauth2/userinfo, you should be redirected to SIS login page, and after you are successfully authenticated, you'll be redirected to the userinfo page where your username and email is shown.
