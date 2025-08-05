@@ -2,9 +2,9 @@
 # the FROM statements and overall Dockerfile
 #
 # Argument for setting the build image
-ARG BUILD_IMAGE=placeholder
+ARG BUILD_IMAGE=distroless/static:nonroot
 # Argument for setting the runtime image
-ARG RUNTIME_IMAGE=placeholder
+ARG RUNTIME_IMAGE=golang:1.24-bookworm
 # Argument for setting the oauth2-proxy build version
 ARG VERSION
 
