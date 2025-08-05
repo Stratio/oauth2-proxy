@@ -513,6 +513,9 @@ type LegacyProvider struct {
 	GoogleUseOrganizationID                bool     `flag:"google-use-organization-id" cfg:"google_use_organization_id"`
 	GoogleAdminAPIUserScope                string   `flag:"google-admin-api-user-scope" cfg:"google_admin_api_user_scope"`
 
+	SISRootURL            string   `flag:"sis-root-url" cfg:"sis_root_url"`
+	ClearExtraCookieNames []string `flag:"clear-extra-cookie-names" cfg:"clear_extra_cookie_names"`
+
 	// These options allow for other providers besides Google, with
 	// potential overrides.
 	ProviderType                       string   `flag:"provider" cfg:"provider"`
@@ -575,6 +578,9 @@ func legacyProviderFlagSet() *pflag.FlagSet {
 	flagSet.String("client-id", "", "the OAuth Client ID: ie: \"123456.apps.googleusercontent.com\"")
 	flagSet.String("client-secret", "", "the OAuth Client Secret")
 	flagSet.String("client-secret-file", "", "the file with OAuth Client Secret")
+
+	flagSet.String("sis-root-url", "", "Stratio SIS root url")
+	flagSet.StringSlice("clear-extra-cookie-names", []string{}, "Clear extra cookies after logout")
 
 	flagSet.String("provider", "google", "OAuth provider")
 	flagSet.String("provider-display-name", "", "Provider display name")
@@ -724,6 +730,11 @@ func (l *LegacyProvider) convert() (Providers, error) {
 	provider.AzureConfig = AzureOptions{
 		Tenant:          l.AzureTenant,
 		GraphGroupField: l.AzureGraphGroupField,
+	}
+
+	provider.SISConfig = SISOptions{
+		SISRootURL:            l.SISRootURL,
+		ClearExtraCookieNames: l.ClearExtraCookieNames,
 	}
 
 	switch provider.Type {
