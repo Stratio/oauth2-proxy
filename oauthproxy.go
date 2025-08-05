@@ -543,7 +543,7 @@ func (p *OAuthProxy) LoadCookiedSession(req *http.Request) (*sessionsapi.Session
 // ClearExtraCookies clears extra cookies if found in request
 func (p *OAuthProxy) ClearExtraCookies(rw http.ResponseWriter, req *http.Request) {
 	if provider, ok := p.provider.(*providers.SISProvider); ok {
-		fmt.Printf(provider.ClientID)
+		fmt.Printf("Provider ClientID: %s", provider.ClientID)
 		for _, name := range provider.ClearExtraCookieNames {
 			c, err := req.Cookie(name)
 			if err != nil {
