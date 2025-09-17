@@ -7,7 +7,7 @@ hose {
     DEVTIMEOUT = 30
     ANCHORE_POLICY = "production"
     VERSIONING_TYPE = 'stratioVersion-3-3'
-    UPSTREAM_VERSION = '7.11.0'
+    UPSTREAM_VERSION = '7.12.0'
     GRYPE_TEST = false
 
     DEV = { config ->
