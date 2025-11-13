@@ -2,12 +2,12 @@
 
 hose {
     EMAIL = 'eos@stratio.com'
-    BUILDTOOL_IMAGE = 'golang:1.24'
+    BUILDTOOL_IMAGE = 'golang:1.25'
     BUILDTOOL = 'make'
     DEVTIMEOUT = 30
     ANCHORE_POLICY = "production"
     VERSIONING_TYPE = 'stratioVersion-3-3'
-    UPSTREAM_VERSION = '7.12.0'
+    UPSTREAM_VERSION = '7.13.0'
     GRYPE_TEST = false
 
     DEV = { config ->
@@ -16,7 +16,7 @@ hose {
             conf: config,
             image: 'oauth2-proxy',
             buildargs: [
-                "BUILD_IMAGE=golang:1.24-bookworm",
+                "BUILD_IMAGE=golang:1.25-bookworm",
                 "RUNTIME_IMAGE=distroless/static:nonroot",
                 "BUILDPLATFORM=linux/amd64",
             ]
