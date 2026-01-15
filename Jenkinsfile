@@ -8,7 +8,7 @@ hose {
     ANCHORE_POLICY = "production"
     VERSIONING_TYPE = 'stratioVersion-3-3'
     UPSTREAM_VERSION = '7.13.0'
-    GRYPE_TEST = false
+    GRYPE_TEST = true
 
     DEV = { config ->
         doUT(conf: config, parameters: "GOCACHE=/tmp")
