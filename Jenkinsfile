@@ -9,6 +9,7 @@ hose {
     VERSIONING_TYPE = 'stratioVersion-3-3'
     UPSTREAM_VERSION = '7.13.0'
     GRYPE_TEST = true
+    VERSIONING_TYPE = "semver"
 
     DEV = { config ->
         doUT(conf: config, parameters: "GOCACHE=/tmp")
