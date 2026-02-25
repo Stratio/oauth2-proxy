@@ -1,6 +1,6 @@
 # Changelog
 
-### 0.4.0 (upcoming)
+### 0.4.0 (2026-02-25)
 
 * [PLT-3428] Bump oauth2 proxy upstream version to 7.13.0
 * [PLT-2291] Fix: Handle missing JWT cookie on oauth2-proxy logout
