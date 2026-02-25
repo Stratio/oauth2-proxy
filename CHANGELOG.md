@@ -1,6 +1,12 @@
 # Changelog
 
-### 0.4.0 (upcoming)
+### 0.5.0 (upcoming)
+
+* Pending changelog
+
+## Previous development
+
+### Branched to branch-0.4 (2026-02-25)
 
 * [PLT-3428] Bump oauth2 proxy upstream version to 7.13.0
 * [PLT-2291] Fix: Handle missing JWT cookie on oauth2-proxy logout
@@ -9,11 +15,7 @@
 
 * Oauth2 proxy upstream version: 7.13.0
 
-### 7.5.1-0.3.0 (2023-11-24)
-
-* [EOS-12032] Use jwt session store
-
-## Previous development
+#
 
 ### 7.4.0-0.2.0 (2023-07-12)
 
