@@ -1,6 +1,6 @@
 # Changelog
 
-### 0.4.1 (upcoming)
+### 0.4.1 (2026-03-25)
 
 * [PLT-3959] Fix CVE-2026-25679: Bump Go stdlib from 1.25.3 to 1.25.8
 
