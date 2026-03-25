@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.4.1 (upcoming)
+
+* [PLT-3959] Fix CVE-2026-25679: Bump Go stdlib from 1.25.3 to 1.25.8
+
 ### 0.4.0 (2026-02-25)
 
 * [PLT-3428] Bump oauth2 proxy upstream version to 7.13.0
