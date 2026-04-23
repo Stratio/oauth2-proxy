@@ -1,8 +1,8 @@
 # Changelog
 
-### 0.5.0 (upcoming)
+### 0.5.0 (2026-04-23)
 
-* Pending changelog
+* [PLT-2583] Bump oauth2-proxy upstream to v7.15.2 (security fixes: authentication bypasses CVE-2026-34986, CVE-2026-32281 and others)
 
 ## Previous development
 
